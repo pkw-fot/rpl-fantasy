@@ -6,7 +6,6 @@
   <title>РПЛ Фэнтези: Драфт</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Canvas Confetti для анимации салюта/взрыва -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script>
     tailwind.config = {
@@ -50,9 +49,47 @@
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
     }
+
+    /* Анимация ядерного удара */
+    @keyframes nukeFlash {
+      0% { opacity: 0; }
+      15% { opacity: 1; background: #ffffff; }
+      40% { opacity: 0.9; background: #ffaa00; }
+      100% { opacity: 0; }
+    }
+    @keyframes textExplosion {
+      0% { transform: scale(0.1) rotate(-15deg); opacity: 0; }
+      30% { transform: scale(1.3) rotate(5deg); opacity: 1; text-shadow: 0 0 30px #ff0055, 0 0 60px #ffaa00; }
+      70% { transform: scale(1) rotate(0deg); opacity: 1; text-shadow: 0 0 20px #ff0055; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0); }
+      10%, 30%, 50%, 70%, 90% { transform: translate(-6px, 6px); }
+      20%, 40%, 60%, 80% { transform: translate(6px, -6px); }
+    }
+    .shake-active {
+      animation: screenShake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    .nuke-flash-active {
+      animation: nukeFlash 1.4s ease-out forwards;
+    }
+    .boom-text-active {
+      animation: textExplosion 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
   </style>
 </head>
-<body class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-2">
+<body id="appBody" class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-2 relative overflow-x-hidden">
+
+  <!-- Слой ядерной вспышки -->
+  <div id="nukeFlashLayer" class="fixed inset-0 pointer-events-none z-50 opacity-0"></div>
+
+  <!-- Огромный текст BOOM, BITCH -->
+  <div id="boomTextContainer" class="fixed inset-0 pointer-events-none z-50 flex items-center justify-center hidden">
+    <div id="boomText" class="text-5xl font-black text-amber-400 tracking-tighter uppercase text-center leading-none px-4 drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] border-y-4 border-amber-400 bg-black/40 py-2">
+      BOOM,<br /><span class="text-rose-500">BITCH.</span>
+    </div>
+  </div>
 
   <div class="space-y-2">
     <!-- Шапка -->
@@ -241,7 +278,7 @@
       </div>
     </div>
 
-    <!-- Модалка пака позиции с плавной анимацией -->
+    <!-- Модалка пака позиции -->
     <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
       <div class="text-center space-y-1 mb-5">
         <div id="modalPackRole" class="text-xs font-black text-slate-400 uppercase tracking-widest">ПАК АМПЛУА</div>
@@ -312,7 +349,7 @@
       'Коста-Рика': '🇨🇷',
       'Мексика': '🇲🇽',
       'Иран': '🇮🇷',
-      'Узбекистан': '🇺🇿',
+      'Узбекистан': 'UZB',
       'Туркменистан': '🇹🇲',
       'Люксембург': '🇱🇺',
       'Кабо-Верде': '🇨🇻',
@@ -415,7 +452,7 @@
       return counts;
     }
 
-    // Лимит ЕАЭС считается ТОЛЬКО по стартовому составу (11)
+    // Подсчет граждан ЕАЭС строго в основе (11)
     function getStartingEaesCount() {
       return Object.values(state.starting).filter(p => p && EAES_COUNTRIES.includes(p.country)).length;
     }
@@ -483,7 +520,6 @@
         cardEl.onclick = () => selectCardFromPack(card);
         container.appendChild(cardEl);
 
-        // Более долгая и плавная анимация появления
         setTimeout(() => {
           cardEl.classList.remove('opacity-0', 'scale-75');
           cardEl.classList.add('opacity-100', 'scale-100');
@@ -506,7 +542,6 @@
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // Drag and drop логика
     function setupDragAndDrop(slotEl, slot) {
       slotEl.draggable = true;
 
@@ -594,7 +629,6 @@
       }
       slotEl.className = baseClasses;
 
-      // Добавляем бейдж капитана если назначен
       const existingBadge = slotEl.querySelector('.cap-tag');
       if (isCaptain && !existingBadge) {
         const badge = document.createElement('span');
@@ -611,7 +645,7 @@
       const filledCount = Object.values(all).filter(Boolean).length;
       document.getElementById('draftProgressBadge').innerText = `${filledCount} / 15`;
 
-      // Лимит ЕАЭС (в стартовых 11)
+      // Лимит ЕАЭС в основе (11)
       const eaesStarting = getStartingEaesCount();
       const rfLabel = document.getElementById('rfLimitLabel');
       rfLabel.innerText = `${eaesStarting} / 4`;
@@ -706,29 +740,55 @@
       });
     }
 
-    function triggerConfettiExplosion() {
+    // Эпичный ядерный взрыв
+    function triggerNukeExplosion() {
+      const flash = document.getElementById('nukeFlashLayer');
+      const body = document.getElementById('appBody');
+      const boomContainer = document.getElementById('boomTextContainer');
+      const boomText = document.getElementById('boomText');
+
+      // 1. Тряска экрана + вспышка
+      body.classList.add('shake-active');
+      flash.classList.add('nuke-flash-active');
+      boomContainer.classList.remove('hidden');
+      boomText.classList.add('boom-text-active');
+
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('heavy');
+        setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 150);
+      }
+
+      // 2. Мега-залп конфетти
       if (typeof confetti === 'function') {
-        // Запуск двух мощных волн салюта из центра
         confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.5 },
+          colors: ['#ff0055', '#ffaa00', '#ffffff', '#10b981', '#f59e0b']
         });
         setTimeout(() => {
           confetti({
-            particleCount: 50,
+            particleCount: 100,
             angle: 60,
-            spread: 55,
-            origin: { x: 0 }
+            spread: 80,
+            origin: { x: 0, y: 0.7 }
           });
           confetti({
-            particleCount: 50,
+            particleCount: 100,
             angle: 120,
-            spread: 55,
-            origin: { x: 1 }
+            spread: 80,
+            origin: { x: 1, y: 0.7 }
           });
-        }, 150);
+        }, 200);
       }
+
+      // Очистка анимаций после завершения
+      setTimeout(() => {
+        body.classList.remove('shake-active');
+        flash.classList.remove('nuke-flash-active');
+        boomContainer.classList.add('hidden');
+        boomText.classList.remove('boom-text-active');
+      }, 1600);
     }
 
     function setCaptain(slot) {
@@ -742,10 +802,8 @@
       document.getElementById('finishDraftBtn').classList.add('hidden');
       document.getElementById('shareBtn').classList.remove('hidden');
 
-      // Анимация взрыва частиц
-      triggerConfettiExplosion();
-
-      if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      // Ядерный взрыв без назойливого alert()
+      triggerNukeExplosion();
     }
 
     function shareRoster() {

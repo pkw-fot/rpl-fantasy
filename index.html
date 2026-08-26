@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>РПЛ Фэнтези Пик</title>
+  <title>РПЛ Фэнтези Драфт</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS CDN -->
@@ -13,190 +13,280 @@
       theme: {
         extend: {
           colors: {
-            bgDark: '#0f172a',
-            cardDark: '#1e293b',
-            accentGreen: '#22c55e',
+            pitch: '#0f291e',
+            pitchLine: '#1e4d38',
+            bgDark: '#090d16',
+            cardDark: '#131b2e',
+            accentGreen: '#10b981',
             accentAmber: '#f59e0b',
           }
         }
       }
     }
   </script>
+  <style>
+    .pitch-bg {
+      background: radial-gradient(circle, #143828 0%, #0a1f16 100%);
+      border: 2px solid #225e43;
+      position: relative;
+    }
+    .pitch-center-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      border: 1px dashed #225e43;
+      border-radius: 50%;
+    }
+    .pitch-half-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      border-top: 1px dashed #225e43;
+    }
+  </style>
 </head>
 <body class="bg-bgDark text-slate-100 min-h-screen p-4 font-sans select-none flex flex-col justify-between">
 
-  <!-- Шапка -->
   <div>
-    <header class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+    <!-- Header -->
+    <header class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
       <div>
-        <h1 class="text-lg font-black tracking-wide text-white uppercase">РПЛ: Тур 19</h1>
-        <p class="text-xs text-slate-400">Собери 3 пика на уикенд</p>
+        <h1 class="text-base font-black tracking-wide text-white uppercase flex items-center gap-2">
+          <span>⚽ РПЛ: ДРАФТ ТУРА</span>
+        </h1>
+        <p class="text-xs text-slate-400">Собери 5 позиций на поле</p>
       </div>
-      <div id="multiplierBadge" class="bg-slate-800 border border-slate-600 px-3 py-1 rounded-full text-xs font-bold text-accentGreen">
+      <div id="riskBadge" class="bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-full text-xs font-bold text-accentGreen">
         Множитель: x1
       </div>
     </header>
 
-    <!-- Экран 1: Выбор состава -->
-    <main id="draftScreen" class="space-y-4">
-      <!-- Слот 1: Нападающий -->
-      <div class="space-y-2">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">1. Нападающий</span>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="selectPlayer(1, 'Константин Тюкавин', 'Динамо')" id="btn-1-1" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
-            <div class="font-bold text-sm text-white">К. Тюкавин</div>
-            <div class="text-xs text-slate-400">Динамо М</div>
+    <!-- Игровой экран (Футбольное поле) -->
+    <main id="mainScreen" class="space-y-4">
+      
+      <!-- Поле с позициями -->
+      <div class="pitch-bg rounded-2xl p-4 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[360px]">
+        <div class="pitch-half-line"></div>
+        <div class="pitch-center-circle"></div>
+
+        <!-- Линия Атаки (2 слота) -->
+        <div class="flex justify-around z-10">
+          <button onclick="openPicker('FWD1')" id="slot-FWD1" class="w-32 p-2 bg-slate-900/90 border border-emerald-500/30 rounded-xl text-center backdrop-blur transition active:scale-95">
+            <span class="text-[10px] text-emerald-400 font-bold uppercase block">Форвард #1</span>
+            <div id="val-FWD1" class="text-xs font-bold text-white truncate mt-0.5">+ Выбрать</div>
+            <div id="club-FWD1" class="text-[10px] text-slate-400 truncate">РПЛ</div>
           </button>
-          <button onclick="selectPlayer(1, 'Джон Кордоба', 'Краснодар')" id="btn-1-2" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
-            <div class="font-bold text-sm text-white">Дж. Кордоба</div>
-            <div class="text-xs text-slate-400">Краснодар</div>
+          <button onclick="openPicker('FWD2')" id="slot-FWD2" class="w-32 p-2 bg-slate-900/90 border border-emerald-500/30 rounded-xl text-center backdrop-blur transition active:scale-95">
+            <span class="text-[10px] text-emerald-400 font-bold uppercase block">Форвард #2</span>
+            <div id="val-FWD2" class="text-xs font-bold text-white truncate mt-0.5">+ Выбрать</div>
+            <div id="club-FWD2" class="text-[10px] text-slate-400 truncate">РПЛ</div>
+          </button>
+        </div>
+
+        <!-- Линия Полузащиты (1 слот - Плеймейкер/Вингер) -->
+        <div class="flex justify-center z-10">
+          <button onclick="openPicker('MID')" id="slot-MID" class="w-36 p-2 bg-slate-900/90 border border-amber-500/30 rounded-xl text-center backdrop-blur transition active:scale-95">
+            <span class="text-[10px] text-amber-400 font-bold uppercase block">Полузащитник</span>
+            <div id="val-MID" class="text-xs font-bold text-white truncate mt-0.5">+ Выбрать</div>
+            <div id="club-MID" class="text-[10px] text-slate-400 truncate">РПЛ</div>
+          </button>
+        </div>
+
+        <!-- Линия Защиты и Вратарь (2 слота) -->
+        <div class="flex justify-around z-10">
+          <button onclick="openPicker('DEF')" id="slot-DEF" class="w-32 p-2 bg-slate-900/90 border border-blue-500/30 rounded-xl text-center backdrop-blur transition active:scale-95">
+            <span class="text-[10px] text-blue-400 font-bold uppercase block">Защитник</span>
+            <div id="val-DEF" class="text-xs font-bold text-white truncate mt-0.5">+ Выбрать</div>
+            <div id="club-DEF" class="text-[10px] text-slate-400 truncate">РПЛ</div>
+          </button>
+          <button onclick="openPicker('GK')" id="slot-GK" class="w-32 p-2 bg-slate-900/90 border border-purple-500/30 rounded-xl text-center backdrop-blur transition active:scale-95">
+            <span class="text-[10px] text-purple-400 font-bold uppercase block">Вратарь</span>
+            <div id="val-GK" class="text-xs font-bold text-white truncate mt-0.5">+ Выбрать</div>
+            <div id="club-GK" class="text-[10px] text-slate-400 truncate">РПЛ</div>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Карточка All-in -->
+      <div id="allinBox" class="p-3.5 bg-cardDark border border-amber-500/30 rounded-xl space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">⚡ ПАНЧ ТУРА (ALL-IN)</span>
+          <span class="text-[10px] font-bold bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">Кэф: 2.00</span>
+        </div>
+        <p class="text-xs text-slate-300 font-medium leading-relaxed">
+          Забьет ли <b class="text-white">Константин Тюкавин</b> («Динамо») гол в эти выходные?
+        </p>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="toggleRisk(true)" id="riskYesBtn" class="py-2 px-3 bg-slate-800 border border-slate-700 hover:border-amber-500 rounded-lg text-xs font-bold transition">
+            🔥 Рискнуть (x2)
+          </button>
+          <button onclick="toggleRisk(false)" id="riskNoBtn" class="py-2 px-3 bg-slate-800 border border-slate-700 hover:border-slate-500 rounded-lg text-xs font-bold text-slate-400 transition">
+            🛡️ Без риска (x1)
           </button>
         </div>
       </div>
 
-      <!-- Слот 2: Полузащитник -->
-      <div class="space-y-2">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">2. Полузащитник</span>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="selectPlayer(2, 'Эдуард Сперцян', 'Краснодар')" id="btn-2-1" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
-            <div class="font-bold text-sm text-white">Э. Сперцян</div>
-            <div class="text-xs text-slate-400">Краснодар</div>
-          </button>
-          <button onclick="selectPlayer(2, 'Лечи Садулаев', 'Ахмат')" id="btn-2-2" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
-            <div class="font-bold text-sm text-white">Л. Садулаев</div>
-            <div class="text-xs text-slate-400">Ахмат</div>
-          </button>
-        </div>
-      </div>
-
-      <!-- Слот 3: Темная лошадка -->
-      <div class="space-y-2">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">3. Темная лошадка</span>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="selectPlayer(3, 'Алексей Каштанов', 'Факел')" id="btn-3-1" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
-            <div class="font-bold text-sm text-white">А. Каштанов</div>
-            <div class="text-xs text-slate-400">Факел</div>
-          </button>
-          <button onclick="selectPlayer(3, 'Роналдо', 'Ростов')" id="btn-3-2" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
-            <div class="font-bold text-sm text-white">Роналдо</div>
-            <div class="text-xs text-slate-400">Ростов</div>
-          </button>
-        </div>
-      </div>
     </main>
 
-    <!-- Экран 2: Модалка All-in -->
-    <div id="riskScreen" class="hidden mt-2 p-4 bg-gradient-to-b from-slate-800 to-slate-900 border border-amber-500/40 rounded-2xl space-y-4 shadow-xl">
-      <div class="flex items-center space-x-2">
-        <span class="text-2xl">🔥</span>
-        <div>
-          <h2 class="text-base font-bold text-white">ПАНЧ ТУРА (ALL-IN)</h2>
-          <p class="text-xs text-amber-400">Шанс удвоить все очки</p>
+    <!-- Модалка выбора игрока из расширенной базы -->
+    <div id="playerModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-cardDark border border-slate-800 w-full max-w-md rounded-t-2xl sm:rounded-2xl p-4 max-h-[80vh] flex flex-col">
+        <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+          <div>
+            <h3 id="modalTitle" class="text-sm font-bold text-white">Выбор игрока</h3>
+            <p class="text-[11px] text-slate-400">Нажми на игрока для драфта в состав</p>
+          </div>
+          <button onclick="closePicker()" class="text-slate-400 hover:text-white text-lg px-2">✕</button>
         </div>
-      </div>
-      
-      <div class="bg-cardDark p-3 rounded-xl border border-slate-700">
-        <p class="text-sm font-medium text-slate-200">Забьет ли <span class="text-white font-bold">Тюкавин</span> гол на этих выходных?</p>
-        <span class="inline-block mt-2 text-xs font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Кэф: 2.00</span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 pt-1">
-        <button onclick="handleRisk(true)" class="py-3 px-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition active:scale-95">
-          🔥 Рискнуть (x2)
-        </button>
-        <button onclick="handleRisk(false)" class="py-3 px-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs uppercase rounded-xl transition active:scale-95">
-          🛡️ Забрать x1
-        </button>
-      </div>
-    </div>
-
-    <!-- Экран 3: Финал -->
-    <div id="finalScreen" class="hidden space-y-4">
-      <div class="p-4 bg-cardDark border border-slate-700 rounded-2xl space-y-3">
-        <div class="flex justify-between items-center border-b border-slate-700 pb-2">
-          <span class="text-xs font-bold text-slate-400 uppercase">Твой состав</span>
-          <span id="finalMultiplier" class="text-xs font-black text-amber-400 bg-slate-800 px-2 py-0.5 rounded">x1</span>
-        </div>
-        <div id="summaryList" class="space-y-2 text-sm"></div>
+        <div id="playerList" class="overflow-y-auto py-3 space-y-2 flex-1"></div>
       </div>
     </div>
   </div>
 
-  <!-- Нижняя панель действий -->
-  <div class="pt-4">
-    <button id="nextBtn" onclick="openRiskModal()" disabled class="w-full py-3.5 bg-slate-700 text-slate-400 font-bold text-sm uppercase tracking-wide rounded-xl transition">
-      Выбери 3 игроков
-    </button>
-    <button id="shareBtn" onclick="shareTeam()" class="hidden w-full py-3.5 bg-accentGreen text-slate-950 font-black text-sm uppercase tracking-wide rounded-xl transition active:scale-95">
-      🚀 Поделиться в Telegram
+  <!-- Футер / Кнопка действия -->
+  <div class="pt-3">
+    <button id="mainActionBtn" onclick="shareRoster()" class="w-full py-3.5 bg-accentGreen text-slate-950 font-black text-sm uppercase tracking-wide rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+      🚀 Сохранить и поделиться
     </button>
   </div>
 
   <script>
-    // Инициализация Telegram SDK
+    // Инициализация Telegram Mini App SDK
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.expand();
       tg.ready();
     }
 
-    const state = {
-      picks: { 1: null, 2: null, 3: null },
-      multiplier: 1
+    // Расширенная база данных РПЛ по позициям
+    const rplDatabase = {
+      GK: [
+        { name: "Матвей Сафонов", club: "Зенит / Топ", tier: "Звезда" },
+        { name: "Игорь Акинфеев", club: "ЦСКА", tier: "Легенда" },
+        { name: "Александр Максименко", club: "Спартак", tier: "Основа" },
+        { name: "Виталий Гудиев", club: "Факел", tier: "Андердог" },
+        { name: "Гиорги Шелия", club: "Ахмат", tier: "Андердог" }
+      ],
+      DEF: [
+        { name: "Страхиня Эракович", club: "Зенит", tier: "Звезда" },
+        { name: "Игорь Дивеев", club: "ЦСКА", tier: "Звезда" },
+        { name: "Срджан Бабич", club: "Спартак", tier: "Основа" },
+        { name: "Александр Сильянов", club: "Локомотив", tier: "Основа" },
+        { name: "Максим Осипенко", club: "Ростов", tier: "Лидер" },
+        { name: "Игорь Калинин", club: "Факел", tier: "Андердог" }
+      ],
+      MID: [
+        { name: "Эдуард Сперцян", club: "Краснодар", tier: "Топ" },
+        { name: "Вендел", club: "Зенит", tier: "Топ" },
+        { name: "Алексей Батраков", club: "Локомотив", tier: "Открытие" },
+        { name: "Лечи Садулаев", club: "Ахмат", tier: "Дриблер" },
+        { name: "Эсекьель Барко", club: "Спартак", tier: "Топ" },
+        { name: "Ильнур Альшин", club: "Факел", tier: "Андердог" },
+        { name: "Данил Глебов", club: "Ростов", tier: "Основа" }
+      ],
+      FWD: [
+        { name: "Константин Тюкавин", club: "Динамо", tier: "Бомбардир" },
+        { name: "Джон Кордоба", club: "Краснодар", tier: "Топ" },
+        { name: "Матео Кассьерра", club: "Зенит", tier: "Топ" },
+        { name: "Манфред Угальде", club: "Спартак", tier: "Бомбардир" },
+        { name: "Роналдо", club: "Ростов", tier: "Вингер" },
+        { name: "Алексей Каштанов", club: "Факел", tier: "Андердог" },
+        { name: "Дмитрий Воробьев", club: "Локомотив", tier: "Основа" }
+      ]
     };
 
-    function selectPlayer(slot, name, club) {
-      state.picks[slot] = { name, club };
+    const state = {
+      roster: {
+        FWD1: null,
+        FWD2: null,
+        MID: null,
+        DEF: null,
+        GK: null
+      },
+      multiplier: 1,
+      currentSlot: null
+    };
 
-      // Подсветка кнопок
-      document.querySelectorAll(`[id^="btn-${slot}-"]`).forEach(el => {
-        el.classList.remove('border-accentGreen', 'bg-slate-800');
-      });
-      event.currentTarget.classList.add('border-accentGreen', 'bg-slate-800');
+    function openPicker(slot) {
+      state.currentSlot = slot;
+      const category = slot.startsWith('FWD') ? 'FWD' : slot;
+      const list = rplDatabase[category] || [];
 
-      // Проверка готовности всех 3 слотов
-      if (state.picks[1] && state.picks[2] && state.picks[3]) {
-        const nextBtn = document.getElementById('nextBtn');
-        nextBtn.disabled = false;
-        nextBtn.classList.remove('bg-slate-700', 'text-slate-400');
-        nextBtn.classList.add('bg-accentGreen', 'text-slate-950');
-        nextBtn.innerText = 'Подтвердить состав →';
+      document.getElementById('modalTitle').innerText = `Выбор: ${slot.startsWith('FWD') ? 'Нападающий' : slot === 'MID' ? 'Полузащитник' : slot === 'DEF' ? 'Защитник' : 'Вратарь'}`;
+      
+      const container = document.getElementById('playerList');
+      container.innerHTML = list.map((p, idx) => `
+        <div onclick="selectPlayer('${p.name}', '${p.club}')" class="p-3 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 rounded-xl flex items-center justify-between cursor-pointer transition active:scale-98">
+          <div>
+            <div class="font-bold text-xs text-white">${p.name}</div>
+            <div class="text-[11px] text-slate-400">${p.club}</div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-900 rounded text-emerald-400 border border-slate-700">${p.tier}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('playerModal').classList.remove('hidden');
+    }
+
+    function closePicker() {
+      document.getElementById('playerModal').classList.add('hidden');
+    }
+
+    function selectPlayer(name, club) {
+      const slot = state.currentSlot;
+      state.roster[slot] = { name, club };
+
+      document.getElementById(`val-${slot}`).innerText = name;
+      document.getElementById(`club-${slot}`).innerText = club;
+      document.getElementById(`slot-${slot}`).classList.add('border-accentGreen', 'bg-emerald-950/40');
+
+      closePicker();
+    }
+
+    function toggleRisk(isRisk) {
+      state.multiplier = isRisk ? 2 : 1;
+      
+      const yesBtn = document.getElementById('riskYesBtn');
+      const noBtn = document.getElementById('riskNoBtn');
+      const badge = document.getElementById('riskBadge');
+
+      if (isRisk) {
+        yesBtn.className = 'py-2 px-3 bg-amber-500 border border-amber-400 text-slate-950 font-black rounded-lg text-xs transition';
+        noBtn.className = 'py-2 px-3 bg-slate-800 border border-slate-700 text-slate-400 font-bold rounded-lg text-xs transition';
+        badge.innerText = 'Множитель: x2 🔥';
+        badge.className = 'bg-amber-500/20 border border-amber-500 px-2.5 py-1 rounded-full text-xs font-black text-amber-400';
+      } else {
+        noBtn.className = 'py-2 px-3 bg-slate-700 border border-slate-600 text-white font-black rounded-lg text-xs transition';
+        yesBtn.className = 'py-2 px-3 bg-slate-800 border border-slate-700 text-slate-400 font-bold rounded-lg text-xs transition';
+        badge.innerText = 'Множитель: x1';
+        badge.className = 'bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-full text-xs font-bold text-accentGreen';
       }
     }
 
-    function openRiskModal() {
-      document.getElementById('draftScreen').classList.add('hidden');
-      document.getElementById('nextBtn').classList.add('hidden');
-      document.getElementById('riskScreen').classList.remove('hidden');
-    }
+    function shareRoster() {
+      const missing = Object.entries(state.roster).filter(([k, v]) => !v);
+      if (missing.length > 0) {
+        alert('Заполните все позиции на поле перед сохранением!');
+        return;
+      }
 
-    function handleRisk(isRisked) {
-      state.multiplier = isRisked ? 2 : 1;
-      
-      document.getElementById('riskScreen').classList.add('hidden');
-      document.getElementById('finalScreen').classList.remove('hidden');
-      document.getElementById('shareBtn').classList.remove('hidden');
+      const text = `📋 МОЙ ДРАФТ РПЛ (Тур 19):\n` +
+        `🧤 ВРТ: ${state.roster.GK.name} (${state.roster.GK.club})\n` +
+        `🛡️ ЗАЩ: ${state.roster.DEF.name} (${state.roster.DEF.club})\n` +
+        `🎯 ПЗ: ${state.roster.MID.name} (${state.roster.MID.club})\n` +
+        `⚡ НАП: ${state.roster.FWD1.name} и ${state.roster.FWD2.name}\n\n` +
+        `🔥 All-in: множитель x${state.multiplier}`;
 
-      // Отрисовка итога
-      document.getElementById('finalMultiplier').innerText = `x${state.multiplier}`;
-      document.getElementById('multiplierBadge').innerText = `Множитель: x${state.multiplier}`;
-      
-      const summaryList = document.getElementById('summaryList');
-      summaryList.innerHTML = Object.values(state.picks).map(p => `
-        <div class="flex justify-between items-center py-1">
-          <span class="font-bold text-white">${p.name}</span>
-          <span class="text-xs text-slate-400">${p.club}</span>
-        </div>
-      `).join('');
-    }
-
-    function shareTeam() {
-      const text = `🔥 Мой состав в РПЛ Фэнтези (Тур 19):\n1. ${state.picks[1].name}\n2. ${state.picks[2].name}\n3. ${state.picks[3].name}\n\n⚡ Множитель: x${state.multiplier}`;
       if (tg) {
         tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
       } else {
         navigator.clipboard.writeText(text);
-        alert('Состав скопирован в буфер обмена!');
+        alert('Состав скопирован в буфер!');
       }
     }
   </script>

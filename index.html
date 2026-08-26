@@ -91,7 +91,7 @@
   </div>
 
   <div class="space-y-2">
-    <!-- Шапка -->
+    <!-- Шапка с кнопками меню, настроек и схемой -->
     <header class="flex items-center justify-between border-b border-slate-800 pb-2">
       <div class="space-y-1">
         <h1 class="text-xs font-black tracking-wide text-white uppercase">
@@ -108,13 +108,16 @@
       </div>
 
       <div class="flex items-center gap-1.5">
+        <button onclick="openSettingsModal()" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg border border-slate-700 flex items-center justify-center transition" title="Настройки">
+          ⚙️
+        </button>
         <button onclick="openHistoryModal()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] rounded-lg border border-slate-700 transition">
           История
         </button>
-        <button onclick="openLeaderboardModal()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-[10px] rounded-lg border border-slate-700 transition">
+        <button onclick="openLeagueModal()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-[10px] rounded-lg border border-slate-700 transition">
           Лига
         </button>
-        <button onclick="autoFillSquad()" id="autoFillBtn" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase rounded-lg shadow-md active:scale-95 transition flex items-center gap-1 border border-indigo-400/40">
+        <button onclick="autoFillSquad()" id="autoFillBtn" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase rounded-lg shadow-md active:scale-95 transition flex items-center gap-0.5 border border-indigo-400/40">
           <span>⚡</span> Авто
         </button>
       </div>
@@ -240,6 +243,107 @@
       </div>
     </div>
 
+    <!-- Модалка Настроек -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-black text-white uppercase">Настройки</h3>
+          <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <span class="text-xs font-bold text-white">Звуковые эффекты</span>
+          <button onclick="toggleSoundSetting()" id="soundToggleBtn" class="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg transition">
+            ВКЛ
+          </button>
+        </div>
+        <button onclick="closeSettingsModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Готово</button>
+      </div>
+    </div>
+
+    <!-- Модалка Лиг (Еженедельная + Френд Лига + Чаты) -->
+    <div id="leagueModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-sm space-y-3 flex flex-col max-h-[85vh]">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <!-- Вкладки лиг -->
+          <div class="flex gap-2">
+            <button onclick="switchLeagueTab('weekly')" id="weeklyTabBtn" class="text-xs font-black text-emerald-400 border-b-2 border-emerald-400 pb-0.5">
+              Еженедельная лига
+            </button>
+            <button onclick="switchLeagueTab('friends')" id="friendsTabBtn" class="text-xs font-bold text-slate-400 pb-0.5">
+              Френд-лига
+            </button>
+          </div>
+          <button onclick="closeLeagueModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+        </div>
+
+        <!-- Контент Еженедельной Лиги -->
+        <div id="weeklyLeagueContent" class="space-y-3 flex-1 overflow-y-auto">
+          <div class="space-y-1 text-xs">
+            <div class="p-2 bg-slate-800/90 rounded-xl border border-amber-500/40 flex justify-between items-center">
+              <span class="font-bold text-white">1. Вы (Текущий состав)</span>
+              <span class="font-black text-emerald-400">84 pts</span>
+            </div>
+            <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
+              <span>2. Александр С.</span>
+              <span class="font-bold">78 pts</span>
+            </div>
+            <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
+              <span>3. Максим К.</span>
+              <span class="font-bold">71 pts</span>
+            </div>
+          </div>
+
+          <!-- Чат еженедельной лиги -->
+          <div class="border-t border-slate-800 pt-2 space-y-1.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Чат тура</span>
+            <div id="weeklyChatBox" class="h-28 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1 text-[11px] border border-slate-800">
+              <div class="text-slate-400"><b class="text-emerald-400">Александр:</b> Какого капитана берете?</div>
+              <div class="text-slate-400"><b class="text-sky-400">Максим:</b> У меня Глушенков на x2 залетает 🔥</div>
+            </div>
+            <div class="flex gap-1">
+              <input type="text" id="weeklyChatInput" placeholder="Написать в чат..." class="flex-1 bg-slate-800 text-xs p-1.5 rounded-lg border border-slate-700 text-white focus:outline-none" />
+              <button onclick="sendChatMessage('weekly')" class="px-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-xs rounded-lg text-white">Отправить</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Контент Френд-Лиги -->
+        <div id="friendsLeagueContent" class="hidden space-y-3 flex-1 overflow-y-auto">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Таблица друзей</span>
+            <button onclick="inviteTelegramFriends()" class="px-2.5 py-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-black text-[10px] uppercase rounded-lg shadow transition active:scale-95">
+              + Пригласить друзей
+            </button>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            <div class="p-2 bg-slate-800/90 rounded-xl border border-emerald-500/40 flex justify-between items-center">
+              <span class="font-bold text-white">1. Вы</span>
+              <span class="font-black text-emerald-400">84 pts</span>
+            </div>
+            <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
+              <span>2. Друг (Telegram)</span>
+              <span class="font-bold">69 pts</span>
+            </div>
+          </div>
+
+          <!-- Чат френд-лиги -->
+          <div class="border-t border-slate-800 pt-2 space-y-1.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Чат с друзьями</span>
+            <div id="friendsChatBox" class="h-28 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1 text-[11px] border border-slate-800">
+              <div class="text-slate-400"><b class="text-amber-400">Бот:</b> Пригласите друзей по кнопке выше, чтобы посоревноваться составами!</div>
+            </div>
+            <div class="flex gap-1">
+              <input type="text" id="friendsChatInput" placeholder="Написать друзьям..." class="flex-1 bg-slate-800 text-xs p-1.5 rounded-lg border border-slate-700 text-white focus:outline-none" />
+              <button onclick="sendChatMessage('friends')" class="px-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-xs rounded-lg text-white">Отправить</button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="closeLeagueModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Закрыть</button>
+      </div>
+    </div>
+
     <!-- Модалка пака позиции -->
     <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
       <div class="text-center space-y-1 mb-5">
@@ -271,34 +375,9 @@
         <button onclick="closeHistoryModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Закрыть</button>
       </div>
     </div>
-
-    <!-- Модалка Лиги Лидеров -->
-    <div id="leaderboardModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-xs space-y-3">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <h3 class="text-xs font-black text-white uppercase">Лига Друзей</h3>
-          <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
-        </div>
-        <div class="space-y-1.5 text-xs">
-          <div class="p-2 bg-slate-800/90 rounded-xl border border-amber-500/40 flex justify-between items-center">
-            <span class="font-bold text-white">1. Вы (Текущий состав)</span>
-            <span id="userPointsBadge" class="font-black text-emerald-400">84 pts</span>
-          </div>
-          <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
-            <span>2. Александр С.</span>
-            <span class="font-bold">78 pts</span>
-          </div>
-          <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
-            <span>3. Максим К.</span>
-            <span class="font-bold">71 pts</span>
-          </div>
-        </div>
-        <button onclick="closeLeaderboardModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Закрыть</button>
-      </div>
-    </div>
   </div>
 
-  <!-- Футер -->
+  <!-- Футер: Кнопки завершения, экспорта и сброса -->
   <div class="pt-1 space-y-2">
     <button id="finishDraftBtn" onclick="finishDraftProcess()" class="w-full py-3 bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-not-allowed">
       Закончить выбор состава (0/15)
@@ -318,7 +397,9 @@
       tg.ready();
     }
 
-    // ЗВУКОВОЙ ДВИЖОК (Тихие и сбалансированные звуки)
+    // НАСТРОЙКИ ЗВУКА
+    let soundEnabled = localStorage.getItem('rpl_sound_enabled') !== 'false';
+
     const AudioEngine = {
       ctx: null,
       init() {
@@ -328,6 +409,7 @@
         }
       },
       playCardRustle() {
+        if (!soundEnabled) return;
         this.init();
         if (!this.ctx) return;
         const bufferSize = this.ctx.sampleRate * 0.1;
@@ -351,6 +433,7 @@
         noise.start();
       },
       playWhistle() {
+        if (!soundEnabled) return;
         this.init();
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
@@ -366,6 +449,7 @@
         osc.stop(this.ctx.currentTime + 0.25);
       },
       playNukeBoom() {
+        if (!soundEnabled) return;
         this.init();
         if (!this.ctx) return;
         const dur = 1.0;
@@ -390,6 +474,25 @@
         noise.start();
       }
     };
+
+    function toggleSoundSetting() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('rpl_sound_enabled', soundEnabled);
+      const btn = document.getElementById('soundToggleBtn');
+      btn.innerText = soundEnabled ? 'ВКЛ' : 'ВЫКЛ';
+      btn.className = soundEnabled ? 'px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg transition' : 'px-3 py-1 bg-slate-700 text-slate-400 font-bold text-xs rounded-lg transition';
+    }
+
+    function openSettingsModal() {
+      const btn = document.getElementById('soundToggleBtn');
+      btn.innerText = soundEnabled ? 'ВКЛ' : 'ВЫКЛ';
+      btn.className = soundEnabled ? 'px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg transition' : 'px-3 py-1 bg-slate-700 text-slate-400 font-bold text-xs rounded-lg transition';
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
 
     const COUNTRY_FLAGS = {
       'Россия': '🇷🇺', 'Беларусь': '🇧🇾', 'Казахстан': '🇰🇿', 'Армения': '🇦🇲', 'Кыргызстан': '🇰🇬',
@@ -659,7 +762,7 @@
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // РАНДОМИЗИРОВАННЫЙ АВТОСБОР СОСТАВА (каждый раз новый состав с бонусами)
+    // ПОЛНОСТЬЮ РАНДОМИЗИРОВАННЫЙ АВТОСБОР
     function autoFillSquad() {
       if (state.isDraftFinished) return;
 
@@ -671,8 +774,7 @@
       const clubUsage = {};
       const selectedNames = new Set();
 
-      function pickRandomPlayer(role, forceEaes = false) {
-        // Перемешиваем массив перед фильтрацией для гарантированной вариативности
+      function pickPureRandomPlayer(role, forceEaes = false) {
         const pool = [...(rplDatabase[role] || [])].sort(() => 0.5 - Math.random()).filter(p => {
           if (selectedNames.has(p.name)) return false;
           if ((clubUsage[p.club] || 0) >= 3) return false;
@@ -689,11 +791,6 @@
           return fallback;
         }
 
-        // 70% шанс поддержать клубную связку (для сыгранности), 30% полный рандом
-        if (Math.random() < 0.7) {
-          pool.sort((a, b) => (clubUsage[b.club] || 0) - (clubUsage[a.club] || 0));
-        }
-
         const chosen = pool[0];
         if (chosen) {
           selectedNames.add(chosen.name);
@@ -702,23 +799,23 @@
         return chosen;
       }
 
-      state.starting.GK = pickRandomPlayer('GK', true);
+      state.starting.GK = pickPureRandomPlayer('GK', true);
       const config = FORMATIONS[state.formation];
 
       for (let i = 1; i <= config.DEF; i++) {
-        state.starting[`DEF${i}`] = pickRandomPlayer('DEF', i <= 3);
+        state.starting[`DEF${i}`] = pickPureRandomPlayer('DEF', i <= 3);
       }
       for (let i = 1; i <= config.MID; i++) {
-        state.starting[`MID${i}`] = pickRandomPlayer('MID', i === 1);
+        state.starting[`MID${i}`] = pickPureRandomPlayer('MID', i === 1);
       }
       for (let i = 1; i <= config.FWD; i++) {
-        state.starting[`FWD${i}`] = pickRandomPlayer('FWD');
+        state.starting[`FWD${i}`] = pickPureRandomPlayer('FWD');
       }
 
-      state.bench.BENCH_GK = pickRandomPlayer('GK');
-      state.bench.BENCH_DEF = pickRandomPlayer('DEF');
-      state.bench.BENCH_MID = pickRandomPlayer('MID');
-      state.bench.BENCH_FWD = pickRandomPlayer('FWD');
+      state.bench.BENCH_GK = pickPureRandomPlayer('GK');
+      state.bench.BENCH_DEF = pickPureRandomPlayer('DEF');
+      state.bench.BENCH_MID = pickPureRandomPlayer('MID');
+      state.bench.BENCH_FWD = pickPureRandomPlayer('FWD');
 
       Object.keys(state.starting).forEach(s => renderSlot(s, state.starting[s]));
       Object.keys(state.bench).forEach(s => renderSlot(s, state.bench[s]));
@@ -1107,12 +1204,57 @@
       document.getElementById('historyModal').classList.add('hidden');
     }
 
-    function openLeaderboardModal() {
-      document.getElementById('leaderboardModal').classList.remove('hidden');
+    // ЛИГИ И ЧАТЫ
+    function openLeagueModal() {
+      document.getElementById('leagueModal').classList.remove('hidden');
     }
 
-    function closeLeaderboardModal() {
-      document.getElementById('leaderboardModal').classList.add('hidden');
+    function closeLeagueModal() {
+      document.getElementById('leagueModal').classList.add('hidden');
+    }
+
+    function switchLeagueTab(tab) {
+      const weeklyBtn = document.getElementById('weeklyTabBtn');
+      const friendsBtn = document.getElementById('friendsTabBtn');
+      const weeklyContent = document.getElementById('weeklyLeagueContent');
+      const friendsContent = document.getElementById('friendsLeagueContent');
+
+      if (tab === 'weekly') {
+        weeklyBtn.className = 'text-xs font-black text-emerald-400 border-b-2 border-emerald-400 pb-0.5';
+        friendsBtn.className = 'text-xs font-bold text-slate-400 pb-0.5';
+        weeklyContent.classList.remove('hidden');
+        friendsContent.classList.add('hidden');
+      } else {
+        friendsBtn.className = 'text-xs font-black text-emerald-400 border-b-2 border-emerald-400 pb-0.5';
+        weeklyBtn.className = 'text-xs font-bold text-slate-400 pb-0.5';
+        friendsContent.classList.remove('hidden');
+        weeklyContent.classList.add('hidden');
+      }
+    }
+
+    function inviteTelegramFriends() {
+      const text = 'Присоединяйся к моей лиге РПЛ Фэнтези! Собери состав и посоревнуйся со мной:';
+      if (tg) {
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`);
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Инвайт-ссылка скопирована!');
+      }
+    }
+
+    function sendChatMessage(type) {
+      const input = document.getElementById(type === 'weekly' ? 'weeklyChatInput' : 'friendsChatInput');
+      const box = document.getElementById(type === 'weekly' ? 'weeklyChatBox' : 'friendsChatBox');
+      const msg = (input.value || '').trim();
+
+      if (!msg) return;
+
+      const newMsgEl = document.createElement('div');
+      newMsgEl.className = 'text-slate-300';
+      newMsgEl.innerHTML = `<b class="text-emerald-400">Вы:</b> ${msg}`;
+      box.appendChild(newMsgEl);
+      box.scrollTop = box.scrollHeight;
+      input.value = '';
     }
 
     function shareRoster() {

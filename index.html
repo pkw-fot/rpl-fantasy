@@ -1,10 +1,9 @@
-
-
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>РПЛ Фэнтези 11</title>
+  <title>РПЛ Фэнтези: Все игроки лиги</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS CDN -->
@@ -43,22 +42,22 @@
 <body class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto">
 
   <div class="space-y-3">
-    <!-- Header -->
+    <!-- Шапка -->
     <header class="flex items-center justify-between border-b border-slate-800 pb-2.5">
       <div>
         <h1 class="text-sm font-black tracking-wide text-white uppercase flex items-center gap-1.5">
-          <span>⚽ РПЛ: ОСНОВА 11</span>
+          <span>⚽ РПЛ: ВСЕ ИГРОКИ (4-3-3)</span>
         </h1>
-        <p class="text-[11px] text-slate-400">Схема 4-3-3 • Сезон 2026/27</p>
+        <p class="text-[11px] text-slate-400">16 клубов лиги • Поиск и фильтры</p>
       </div>
       <div id="riskBadge" class="bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-xs font-bold text-accentGreen">
         x1
       </div>
     </header>
 
-    <!-- Полноценное футбольное поле 11 игроков (4-3-3) -->
+    <!-- Футбольное поле 11 позиций -->
     <main class="space-y-3">
-      <div class="pitch-bg rounded-2xl p-2.5 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[470px] border border-emerald-900/60">
+      <div class="pitch-bg rounded-2xl p-2.5 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[460px] border border-emerald-900/60">
         
         <!-- Разметка поля -->
         <div class="absolute inset-x-0 top-1/2 border-t pitch-line pointer-events-none"></div>
@@ -66,21 +65,18 @@
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-12 border-b border-x pitch-line pointer-events-none"></div>
         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-28 h-12 border-t border-x pitch-line pointer-events-none"></div>
 
-        <!-- 1. Линия Атаки (3 нападающих: ЛВ, ЦН, ПВ) -->
+        <!-- 1. Линия Атаки -->
         <div class="grid grid-cols-3 gap-1.5 z-10">
-          <!-- LW -->
           <button onclick="openPicker('LW')" id="slot-LW" class="slot-card p-1.5 border border-emerald-500/30 rounded-xl text-center active:scale-95">
             <span class="text-[9px] text-emerald-400 font-bold uppercase block">ЛВ</span>
             <div id="val-LW" class="text-[11px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-LW" class="text-[9px] text-slate-400 truncate">Вингер</div>
           </button>
-          <!-- ST -->
           <button onclick="openPicker('ST')" id="slot-ST" class="slot-card p-1.5 border border-emerald-500/40 rounded-xl text-center active:scale-95 bg-slate-900/95">
             <span class="text-[9px] text-emerald-400 font-black uppercase block">ЦН</span>
             <div id="val-ST" class="text-[11px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-ST" class="text-[9px] text-slate-400 truncate">Форвард</div>
           </button>
-          <!-- RW -->
           <button onclick="openPicker('RW')" id="slot-RW" class="slot-card p-1.5 border border-emerald-500/30 rounded-xl text-center active:scale-95">
             <span class="text-[9px] text-emerald-400 font-bold uppercase block">ПВ</span>
             <div id="val-RW" class="text-[11px] font-bold text-white truncate">+ Выбрать</div>
@@ -88,21 +84,18 @@
           </button>
         </div>
 
-        <!-- 2. Линия Полузащиты (3 полузащитника: ЛПЗ, ЦПЗ/ОПЗ, ППЗ) -->
+        <!-- 2. Линия Полузащиты -->
         <div class="grid grid-cols-3 gap-1.5 z-10 my-auto">
-          <!-- LM -->
           <button onclick="openPicker('LM')" id="slot-LM" class="slot-card p-1.5 border border-amber-500/30 rounded-xl text-center active:scale-95">
             <span class="text-[9px] text-amber-400 font-bold uppercase block">ЛПЗ</span>
             <div id="val-LM" class="text-[11px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-LM" class="text-[9px] text-slate-400 truncate">Хавбек</div>
           </button>
-          <!-- CM -->
           <button onclick="openPicker('CM')" id="slot-CM" class="slot-card p-1.5 border border-amber-500/40 rounded-xl text-center active:scale-95 bg-slate-900/95">
             <span class="text-[9px] text-amber-400 font-black uppercase block">ЦОП</span>
             <div id="val-CM" class="text-[11px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-CM" class="text-[9px] text-slate-400 truncate">Опорник</div>
           </button>
-          <!-- RM -->
           <button onclick="openPicker('RM')" id="slot-RM" class="slot-card p-1.5 border border-amber-500/30 rounded-xl text-center active:scale-95">
             <span class="text-[9px] text-amber-400 font-bold uppercase block">ППЗ</span>
             <div id="val-RM" class="text-[11px] font-bold text-white truncate">+ Выбрать</div>
@@ -110,27 +103,23 @@
           </button>
         </div>
 
-        <!-- 3. Линия Защиты (4 защитника: ЛЗ, ЦЗ-1, ЦЗ-2, ПЗ) -->
+        <!-- 3. Линия Защиты -->
         <div class="grid grid-cols-4 gap-1 z-10">
-          <!-- LB -->
           <button onclick="openPicker('LB')" id="slot-LB" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
             <span class="text-[8px] text-blue-400 font-bold uppercase block">ЛЗ</span>
             <div id="val-LB" class="text-[10px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-LB" class="text-[8px] text-slate-400 truncate">Фланг</div>
           </button>
-          <!-- CB1 -->
           <button onclick="openPicker('CB1')" id="slot-CB1" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
             <span class="text-[8px] text-blue-400 font-bold uppercase block">ЦЗ</span>
             <div id="val-CB1" class="text-[10px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-CB1" class="text-[8px] text-slate-400 truncate">Центр</div>
           </button>
-          <!-- CB2 -->
           <button onclick="openPicker('CB2')" id="slot-CB2" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
             <span class="text-[8px] text-blue-400 font-bold uppercase block">ЦЗ</span>
             <div id="val-CB2" class="text-[10px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-CB2" class="text-[8px] text-slate-400 truncate">Центр</div>
           </button>
-          <!-- RB -->
           <button onclick="openPicker('RB')" id="slot-RB" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
             <span class="text-[8px] text-blue-400 font-bold uppercase block">ПЗ</span>
             <div id="val-RB" class="text-[10px] font-bold text-white truncate">+ Выбор</div>
@@ -138,7 +127,7 @@
           </button>
         </div>
 
-        <!-- 4. Вратарь (1 слот) -->
+        <!-- 4. Вратарь -->
         <div class="flex justify-center z-10 pt-1">
           <button onclick="openPicker('GK')" id="slot-GK" class="slot-card w-28 p-1 border border-purple-500/40 rounded-xl text-center active:scale-95">
             <span class="text-[8px] text-purple-400 font-bold uppercase block">Вратарь</span>
@@ -169,16 +158,23 @@
       </div>
     </main>
 
-    <!-- Модалка выбора игрока -->
-    <div id="playerModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end justify-center p-0">
-      <div class="bg-cardDark border-t border-slate-700 w-full max-w-md rounded-t-2xl p-4 max-h-[75vh] flex flex-col">
+    <!-- Модалка выбора игрока с поиском и фильтром клубов -->
+    <div id="playerModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-end justify-center p-0">
+      <div class="bg-cardDark border-t border-slate-700 w-full max-w-md rounded-t-2xl p-4 max-h-[85vh] flex flex-col">
         <div class="flex justify-between items-center pb-2 border-b border-slate-800">
           <div>
             <h3 id="modalTitle" class="text-xs font-bold text-white uppercase tracking-wider">Выбор игрока</h3>
-            <p class="text-[10px] text-slate-400">Актуальная база РПЛ (2026/27)</p>
+            <p class="text-[10px] text-slate-400">Все 16 клубов РПЛ</p>
           </div>
           <button onclick="closePicker()" class="text-slate-400 hover:text-white text-base px-2">✕</button>
         </div>
+
+        <!-- Поисковая строка -->
+        <div class="pt-2">
+          <input type="text" id="playerSearchInput" oninput="renderFilteredList()" placeholder="🔍 Поиск по фамилии или клубу..." class="w-full p-2 bg-slate-800/90 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentGreen" />
+        </div>
+
+        <!-- Список игроков -->
         <div id="playerList" class="overflow-y-auto py-2 space-y-1.5 flex-1"></div>
       </div>
     </div>
@@ -187,7 +183,7 @@
   <!-- Футер -->
   <div class="pt-2">
     <button id="mainActionBtn" onclick="shareRoster()" class="w-full py-3 bg-accentGreen text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5">
-      🚀 Сохранить состав (11/11)
+      🚀 Сохранить состав (0/11)
     </button>
   </div>
 
@@ -198,57 +194,165 @@
       tg.ready();
     }
 
-    // База данных РПЛ (Сезон 2026/27)
-    // Учтены переходы: Воробьев -> Краснодар, Садулаев -> Ахмат (лидер), Барко -> Спартак
+    // Полная база игроков всех 16 клубов РПЛ
     const rplDatabase = {
       GK: [
         { name: "Игорь Акинфеев", club: "ЦСКА", tier: "Легенда" },
         { name: "Александр Максименко", club: "Спартак", tier: "Топ" },
         { name: "Станислав Агкацев", club: "Краснодар", tier: "Основа" },
+        { name: "Евгений Латышонок", club: "Зенит", tier: "Топ" },
+        { name: "Андрей Лунёв", club: "Динамо М", tier: "Опыт" },
+        { name: "Илья Лантратов", club: "Локомотив", tier: "Топ" },
+        { name: "Сергей Песьяков", club: "Крылья Советов", tier: "Основа" },
+        { name: "Рустам Ятимов", club: "Ростов", tier: "Основа" },
+        { name: "Гиорги Шелия", club: "Ахмат", tier: "Лидер" },
         { name: "Виталий Гудиев", club: "Факел", tier: "Андердог" },
-        { name: "Гиорги Шелия", club: "Ахмат", tier: "Лидер" }
+        { name: "Богдан Овсянников", club: "Оренбург", tier: "Основа" },
+        { name: "Никита Медведев", club: "Пари НН", tier: "Основа" },
+        { name: "Александр Беленов", club: "Факел", tier: "Опыт" },
+        { name: "Давид Волк", club: "Динамо Мх", tier: "Открытие" },
+        { name: "Александр Довбня", club: "Химки", tier: "Ротация" },
+        { name: "Игорь Обухов", club: "Химки", tier: "Основа" },
+        { name: "Александр Васютин", club: "Акрон", tier: "Основа" },
+        { name: "Сергей Волков", club: "Акрон", tier: "Ротация" }
       ],
       LB: [
         { name: "Дуглас Сантос", club: "Зенит", tier: "Звезда" },
         { name: "Данил Круговой", club: "ЦСКА", tier: "Топ" },
         { name: "Олег Рябчук", club: "Спартак", tier: "Основа" },
-        { name: "Игорь Калинин", club: "Факел", tier: "Андердог" }
+        { name: "Диего Лаксальт", club: "Динамо М", tier: "Топ" },
+        { name: "Лукас Фассон", club: "Локомотив", tier: "Основа" },
+        { name: "Илья Вахания", club: "Ростов", tier: "Универсал" },
+        { name: "Томас Гальдамес", club: "Крылья Советов", tier: "Основа" },
+        { name: "Игорь Калинин", club: "Факел", tier: "Андердог" },
+        { name: "Матео Стаматов", club: "Пари НН", tier: "Основа" },
+        { name: "Максим Сидоров", club: "Оренбург", tier: "Основа" },
+        { name: "Муталип Алибеков", club: "Динамо Мх", tier: "Капитан" },
+        { name: "Ориньо", club: "Химки", tier: "Основа" },
+        { name: "Роберто Фернандес", club: "Акрон", tier: "Основа" }
       ],
       CB: [
-        { name: "Игорь Дивеев", club: "ЦСКА", tier: "Снайпер-защитник" },
+        { name: "Игорь Дивеев", club: "ЦСКА", tier: "Бомбардир-ЦЗ" },
         { name: "Страхиня Эракович", club: "Зенит", tier: "Топ" },
+        { name: "Нино", club: "Зенит", tier: "Звезда" },
         { name: "Срджан Бабич", club: "Спартак", tier: "Скала" },
         { name: "Витор Тормена", club: "Краснодар", tier: "Основа" },
+        { name: "Кайо", club: "Краснодар", tier: "Основа" },
         { name: "Максим Осипенко", club: "Ростов", tier: "Пенальтист" },
+        { name: "Виллиан Роша", club: "ЦСКА", tier: "Стена" },
+        { name: "Фабиан Бальбуэна", club: "Динамо М", tier: "Лидер" },
+        { name: "Роберто Фернандес", club: "Динамо М", tier: "Основа" },
+        { name: "Жерзино Ньямси", club: "Локомотив", tier: "Мощь" },
+        { name: "Сесар Монтес", club: "Локомотив", tier: "Звезда" },
+        { name: "Александр Солдатенков", club: "Крылья Советов", tier: "Капитан" },
+        { name: "Роман Евгеньев", club: "Крылья Советов", tier: "Основа" },
         { name: "Надер Гандри", club: "Ахмат", tier: "Андердог" },
-        { name: "Сергей Божин", club: "Факел", tier: "Андердог" }
+        { name: "Милош Шатара", club: "Ахмат", tier: "Основа" },
+        { name: "Сергей Божин", club: "Факел", tier: "Андердог" },
+        { name: "Макс Дзиов", club: "Факел", tier: "Андердог" },
+        { name: "Матиас Перес", club: "Оренбург", tier: "Основа" },
+        { name: "Свен Карич", club: "Пари НН", tier: "Основа" },
+        { name: "Виктор Александров", club: "Пари НН", tier: "Основа" },
+        { name: "Джемал Табидзе", club: "Динамо Мх", tier: "Оборона" },
+        { name: "Эдгардо Фаринья", club: "Химки", tier: "Основа" },
+        { name: "Пауло Витор", club: "Акрон", tier: "Основа" }
       ],
       RB: [
         { name: "Александр Сильянов", club: "Локомотив", tier: "Топ" },
         { name: "Милан Гайич", club: "ЦСКА", tier: "Основа" },
         { name: "Даниил Денисов", club: "Спартак", tier: "Основа" },
-        { name: "Сергей Волков", club: "Зенит", tier: "Скорость" }
+        { name: "Сергей Волков", club: "Зенит", tier: "Скорость" },
+        { name: "Вячеслав Караваев", club: "Зенит", tier: "Опыт" },
+        { name: "Сергей Паршивлюк", club: "Динамо М", tier: "Опыт" },
+        { name: "Эли Даса", club: "Динамо М", tier: "Основа" },
+        { name: "Гленн Бейл", club: "Крылья Советов", tier: "Пушка" },
+        { name: "Андрей Лангович", club: "Ростов", tier: "Скорость" },
+        { name: "Арсен Адамов", club: "Ахмат", tier: "Основа" },
+        { name: "Владислав Мастерной", club: "Факел", tier: "Андердог" },
+        { name: "Андрей Малых", club: "Оренбург", tier: "Капитан" },
+        { name: "Дмитрий Живоглядов", club: "Пари НН", tier: "Основа" },
+        { name: "Темиркан Сундуков", club: "Динамо Мх", tier: "Основа" },
+        { name: "Петар Голубович", club: "Химки", tier: "Основа" },
+        { name: "Константин Савичев", club: "Акрон", tier: "Капитан" }
       ],
       MID: [
-        { name: "Эсекьель Барко", club: "Спартак", tier: "Плеймейкер" },
+        { name: "Эсекьель Барко", club: "Спартак", tier: "Маэстро" },
         { name: "Вендел", club: "Зенит", tier: "Мотор" },
         { name: "Клаудиньо", club: "Зенит", tier: "Магия" },
+        { name: "Вильмар Барриос", club: "Зенит", tier: "Опорник" },
         { name: "Иван Обляков", club: "ЦСКА", tier: "Лидер" },
-        { name: "Лечи Садулаев", club: "Ахмат", tier: "Дриблер" },
+        { name: "Саша Зделар", club: "ЦСКА", tier: "Опорник" },
+        { name: "Миралем Пьянич", club: "ЦСКА", tier: "Легенда" },
+        { name: "Хорхе Карраскаль", club: "Динамо М", tier: "Техника" },
+        { name: "Бителло", club: "Динамо М", tier: "Звезда" },
+        { name: "Луис Чавес", club: "Динамо М", tier: "Пушка" },
+        { name: "Даниил Фомин", club: "Динамо М", tier: "Основа" },
+        { name: "Дмитрий Баринов", club: "Локомотив", tier: "Капитан" },
+        { name: "Артём Карпукас", club: "Локомотив", tier: "Опорник" },
+        { name: "Никита Кривцов", club: "Краснодар", tier: "Удар" },
+        { name: "Александр Черников", club: "Краснодар", tier: "Опорник" },
+        { name: "Кевин Ленини", club: "Краснодар", tier: "Основа" },
         { name: "Данил Глебов", club: "Ростов", tier: "Капитан" },
-        { name: "Никита Кривцов", club: "Краснодар", tier: "Пушка" },
+        { name: "Хорен Байрамян", club: "Ростов", tier: "Мотор" },
+        { name: "Иван Комаров", club: "Ростов", tier: "Талант" },
+        { name: "Роман Ежов", club: "Крылья Советов", tier: "Фланг" },
+        { name: "Фернандо Костанца", club: "Крылья Советов", tier: "Основа" },
+        { name: "Иван Олейников", club: "Крылья Советов", tier: "Креатив" },
+        { name: "Лечи Садулаев", club: "Ахмат", tier: "Дриблер" },
+        { name: "Камило", club: "Ахмат", tier: "Опорник" },
+        { name: "Бернард Бериша", club: "Ахмат", tier: "Лидер" },
         { name: "Ильнур Альшин", club: "Факел", tier: "Андердог" },
-        { name: "Артём Карпукас", club: "Локомотив", tier: "Опорник" }
+        { name: "Ираклий Квеквескири", club: "Факел", tier: "Капитан" },
+        { name: "Вячеслав Селе", club: "Факел", tier: "Основа" },
+        { name: "Мохаммад Горбани", club: "Оренбург", tier: "Основа" },
+        { name: "Габриэль Флорентин", club: "Оренбург", tier: "Креатив" },
+        { name: "Николай Калинский", club: "Пари НН", tier: "Стандарты" },
+        { name: "Валерий Царукян", club: "Пари НН", tier: "Дриблер" },
+        { name: "Хуссем Мрезиг", club: "Динамо Мх", tier: "Основа" },
+        { name: "Эгаш Касинтура", club: "Динамо Мх", tier: "Лидер" },
+        { name: "Лукас Вера", club: "Химки", tier: "Маэстро" },
+        { name: "Денис Глушаков", club: "Химки", tier: "Опыт" },
+        { name: "Резиуан Мирзов", club: "Химки", tier: "Фланг" },
+        { name: "Стефан Лончар", club: "Акрон", tier: "Лидер" },
+        { name: "Алекса Джурасович", club: "Акрон", tier: "Основа" }
       ],
       FWD: [
-        { name: "Константин Тюкавин", club: "Динамо", tier: "Главный страйкер" },
+        { name: "Константин Тюкавин", club: "Динамо М", tier: "Топ-Страйкер" },
         { name: "Джон Кордоба", club: "Краснодар", tier: "Танк" },
-        { name: "Дмитрий Воробьёв", club: "Краснодар", tier: "Форвард" },
-        { name: "Манфред Угальде", club: "Спартак", tier: "Бомбардир" },
-        { name: "Матео Кассьерра", club: "Зенит", tier: "Финишер" },
+        { name: "Дмитрий Воробьёв", club: "Краснодар", tier: "Бомбардир" },
+        { name: "Манфред Угальде", club: "Спартак", tier: "Снайпер" },
+        { name: "Тео Бонгонда", club: "Спартак", tier: "Вингер" },
+        { name: "Маркиньос", club: "Спартак", tier: "Вингер" },
+        { name: "Матео Кассьерра", club: "Зенит", tier: "Топ" },
+        { name: "Лусиано Гонду", club: "Зенит", tier: "Голеадор" },
+        { name: "Александр Соболев", club: "Зенит", tier: "Форвард" },
+        { name: "Педро", club: "Зенит", tier: "Дриблинг" },
+        { name: "Тамерлан Мусаев", club: "ЦСКА", tier: "Прессинг" },
+        { name: "Секу Койта", club: "ЦСКА", tier: "Форвард" },
+        { name: "Эль-Мехди Маухуб", club: "Динамо М", tier: "Форвард" },
+        { name: "Ярослав Гладышев", club: "Динамо М", tier: "Вингер" },
+        { name: "Сергей Пиняев", club: "Локомотив", tier: "Скорость" },
+        { name: "Тимур Сулейманов", club: "Локомотив", tier: "Напор" },
         { name: "Роналдо", club: "Ростов", tier: "Вингер" },
+        { name: "Николай Комличенко", club: "Ростов", tier: "Столб" },
+        { name: "Мохеби", club: "Ростов", tier: "Основа" },
+        { name: "Бенхамин Гарре", club: "Крылья Советов", tier: "Звезда" },
+        { name: "Иван Сергеев", club: "Крылья Советов", tier: "Бомбардир" },
+        { name: "Франко Орозко", club: "Крылья Советов", tier: "Вингер" },
+        { name: "Максим Самородов", club: "Ахмат", tier: "Скорость" },
+        { name: "Фелипе Кардосо", club: "Ахмат", tier: "Форвард" },
         { name: "Алексей Каштанов", club: "Факел", tier: "Столб" },
-        { name: "Тамерлан Мусаев", club: "ЦСКА", tier: "Прессинг" }
+        { name: "Владимир Ильин", club: "Факел", tier: "Опыт" },
+        { name: "Брайан Мансилья", club: "Оренбург", tier: "Лидер" },
+        { name: "Саид Сахархизан", club: "Оренбург", tier: "Бомбардир" },
+        { name: "Зе Турбо", club: "Пари НН", tier: "Мощь" },
+        { name: "Хуан Боселли", club: "Пари НН", tier: "Лидер" },
+        { name: "Сердер Сердеров", club: "Динамо Мх", tier: "Форвард" },
+        { name: "Абакар Гаджиев", club: "Динамо Мх", tier: "Техника" },
+        { name: "Антон Заболотный", club: "Химки", tier: "Столб" },
+        { name: "Александр Руденко", club: "Химки", tier: "Скорость" },
+        { name: "Артём Дзюба", club: "Акрон", tier: "Легенда" },
+        { name: "Жилсон Тавареш", club: "Акрон", tier: "Форвард" }
       ]
     };
 
@@ -260,7 +364,8 @@
         GK: null
       },
       multiplier: 1,
-      currentSlot: null
+      currentSlot: null,
+      currentPool: []
     };
 
     function getPoolBySlot(slot) {
@@ -275,13 +380,29 @@
 
     function openPicker(slot) {
       state.currentSlot = slot;
-      const list = getPoolBySlot(slot);
+      state.currentPool = getPoolBySlot(slot);
 
       document.getElementById('modalTitle').innerText = `Позиция: ${slot}`;
+      document.getElementById('playerSearchInput').value = '';
       
+      renderFilteredList();
+      document.getElementById('playerModal').classList.remove('hidden');
+    }
+
+    function renderFilteredList() {
+      const q = document.getElementById('playerSearchInput').value.toLowerCase().trim();
+      const filtered = state.currentPool.filter(p => 
+        p.name.toLowerCase().includes(q) || p.club.toLowerCase().includes(q)
+      );
+
       const container = document.getElementById('playerList');
-      container.innerHTML = list.map((p) => `
-        <div onclick="selectPlayer('${p.name}', '${p.club}')" class="p-2 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl flex items-center justify-between cursor-pointer transition active:scale-98">
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-xs text-slate-500">Игроки не найдены</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(p => `
+        <div onclick="selectPlayer('${p.name.replace(/'/g, "\\'")}', '${p.club.replace(/'/g, "\\'")}')" class="p-2.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl flex items-center justify-between cursor-pointer transition active:scale-98">
           <div>
             <div class="font-bold text-xs text-white">${p.name}</div>
             <div class="text-[10px] text-slate-400">${p.club}</div>
@@ -289,8 +410,6 @@
           <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-900 rounded text-emerald-400 border border-slate-700">${p.tier}</span>
         </div>
       `).join('');
-
-      document.getElementById('playerModal').classList.remove('hidden');
     }
 
     function closePicker() {
@@ -301,7 +420,8 @@
       const slot = state.currentSlot;
       state.roster[slot] = { name, club };
 
-      document.getElementById(`val-${slot}`).innerText = name.split(' ').pop(); // короткая фамилия
+      const shortName = name.split(' ').pop();
+      document.getElementById(`val-${slot}`).innerText = shortName;
       document.getElementById(`club-${slot}`).innerText = club;
       document.getElementById(`slot-${slot}`).classList.add('border-accentGreen', 'bg-emerald-950/60');
 
@@ -337,25 +457,24 @@
     function shareRoster() {
       const filled = Object.values(state.roster).filter(Boolean).length;
       if (filled < 11) {
-        alert(`Вы заполнили ${filled} из 11 игроков. Выберите всех футболистов на поле!`);
+        alert(`Вы заполнили ${filled} из 11 позиций. Соберите всех игроков!`);
         return;
       }
 
-      const text = `📋 МОЙ СОСТАВ РПЛ 11 (4-3-3):\n` +
+      const text = `📋 МОЙ ДРАФТ РПЛ (4-3-3):\n` +
         `🧤 ВРТ: ${state.roster.GK.name} (${state.roster.GK.club})\n` +
         `🛡️ ЗАЩ: ${state.roster.LB.name}, ${state.roster.CB1.name}, ${state.roster.CB2.name}, ${state.roster.RB.name}\n` +
         `🎯 ПЗ: ${state.roster.LM.name}, ${state.roster.CM.name}, ${state.roster.RM.name}\n` +
         `⚡ НАП: ${state.roster.LW.name}, ${state.roster.ST.name}, ${state.roster.RW.name}\n\n` +
-        `🔥 All-in: множитель x${state.multiplier}`;
+        `🔥 All-in множитель: x${state.multiplier}`;
 
       if (tg) {
         tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
       } else {
         navigator.clipboard.writeText(text);
-        alert('Состав из 11 игроков скопирован в буфер!');
+        alert('Состав из 11 игроков скопирован!');
       }
     }
   </script>
 </body>
 </html>
-"""

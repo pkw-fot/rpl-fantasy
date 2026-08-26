@@ -21,7 +21,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests beautifulsoup4
 
       - name: Run updater script
         run: python update_players.py
@@ -34,5 +34,5 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           touch players.json
           git add players.json
-          git commit -m "Auto-update RPL database" || echo "No changes"
+          git commit -m "Auto-update RPL database via official scraper" || echo "No changes"
           git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:main

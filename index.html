@@ -6,6 +6,8 @@
   <title>РПЛ Фэнтези: Драфт</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti для анимации салюта/взрыва -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -30,7 +32,7 @@
       border-color: rgba(34, 197, 94, 0.25);
     }
     .slot-card {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(4px);
       user-select: none;
@@ -42,7 +44,11 @@
       transform: scale(1.05);
     }
     .card-anim {
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+    }
+    .captain-badge {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
     }
   </style>
 </head>
@@ -55,9 +61,9 @@
         <h1 class="text-xs font-black tracking-wide text-white uppercase">
           РПЛ: ДРАФТ СОСТАВА
         </h1>
-        <p class="text-[10px] text-slate-400">Нажмите на слот, чтобы открыть пак</p>
+        <p class="text-[10px] text-slate-400">Нажмите на слот для открытия пака</p>
       </div>
-      <div id="draftProgressBadge" class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
+      <div id="draftProgressBadge" class="bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
         0 / 15
       </div>
     </header>
@@ -65,7 +71,7 @@
     <!-- Информационная плашка правил / лимитов -->
     <div class="p-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-[11px]">
       <div class="flex items-center gap-1.5">
-        <span class="text-slate-400">Лимит ЕАЭС/РФ:</span>
+        <span class="text-slate-400">ЕАЭС/РФ в основе:</span>
         <span id="rfLimitLabel" class="font-bold text-red-400">0 / 4</span>
         <button onclick="toggleLimitInfo()" class="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 text-[9px] font-bold flex items-center justify-center text-slate-300 hover:text-white">?</button>
       </div>
@@ -196,23 +202,23 @@
       </div>
     </main>
 
-    <!-- Справка по лимиту легионеров -->
+    <!-- Справка по лимиту ЕАЭС -->
     <div id="limitInfoModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl max-w-xs space-y-3">
         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <h3 class="text-xs font-black text-white uppercase">Лимит легионеров РПЛ</h3>
+          <h3 class="text-xs font-black text-white uppercase">Лимит легионеров (в основе)</h3>
           <button onclick="toggleLimitInfo()" class="text-slate-400 hover:text-white text-sm">✕</button>
         </div>
         <p class="text-[11px] text-slate-300 leading-relaxed">
-          В заявке команды из 15 игроков должно быть минимум <b>4 игрока, не являющихся легионерами</b>.
+          В <b>стартовом составе (11 игроков)</b> должно быть минимум <b>4 футболиста, не являющихся легионерами</b>.
         </p>
         <div class="text-[10px] bg-slate-800/80 p-2 rounded-xl text-slate-300 space-y-1 border border-slate-700">
-          <div class="font-bold text-emerald-400">Не считаются легионерами граждане стран ЕАЭС:</div>
-          <div>• Россия [RUS]</div>
-          <div>• Беларусь [BLR]</div>
-          <div>• Казахстан [KAZ]</div>
-          <div>• Армения [ARM]</div>
-          <div>• Кыргызстан [KGZ]</div>
+          <div class="font-bold text-emerald-400">Страны ЕАЭС (не легионеры):</div>
+          <div>• 🇷🇺 Россия</div>
+          <div>• 🇧🇾 Беларусь</div>
+          <div>• 🇰🇿 Казахстан</div>
+          <div>• 🇦🇲 Армения</div>
+          <div>• 🇰🇬 Кыргызстан</div>
         </div>
         <button onclick="toggleLimitInfo()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Понятно</button>
       </div>
@@ -235,14 +241,14 @@
       </div>
     </div>
 
-    <!-- Модалка пака позиции -->
+    <!-- Модалка пака позиции с плавной анимацией -->
     <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
       <div class="text-center space-y-1 mb-5">
         <div id="modalPackRole" class="text-xs font-black text-slate-400 uppercase tracking-widest">ПАК АМПЛУА</div>
         <h2 class="text-base font-black text-white uppercase">Выберите 1 игрока</h2>
         <p class="text-[11px] text-slate-400">Игрок займет выбранную позицию</p>
       </div>
-      <div id="packCardsContainer" class="flex justify-center gap-2 w-full max-w-sm"></div>
+      <div id="packCardsContainer" class="flex justify-center gap-2.5 w-full max-w-sm"></div>
     </div>
 
     <!-- Модалка выбора капитана -->
@@ -273,23 +279,56 @@
       tg.ready();
     }
 
-    // Буквенные коды стран вместо эмодзи
-    const COUNTRY_CODES = {
-      'Россия': 'RUS', 'Беларусь': 'BLR', 'Казахстан': 'KAZ', 'Армения': 'ARM', 'Кыргызстан': 'KGZ',
-      'Бразилия': 'BRA', 'Аргентина': 'ARG', 'Сербия': 'SRB', 'Франция': 'FRA', 'Колумбия': 'COL',
-      'Албания': 'ALB', 'Нигерия': 'NGA', 'Уругвай': 'URU', 'Парагвай': 'PAR', 'Боливия': 'BOL',
-      'Чили': 'CHI', 'Португалия': 'POR', 'Испания': 'ESP', 'Италия': 'ITA', 'Словения': 'SVN',
-      'Хорватия': 'CRO', 'Босния и Герцеговина': 'BIH', 'Марокко': 'MAR', 'Алжир': 'ALG', 'Ангола': 'ANG',
-      'Кот-д`Ивуар': 'CIV', 'Сенегал': 'SEN', 'Гондурас': 'HON', 'Панама': 'PAN', 'Коста-Рика': 'CRC',
-      'Мексика': 'MEX', 'Иран': 'IRN', 'Узбекистан': 'UZB', 'Туркменистан': 'TKM', 'Люксембург': 'LUX',
-      'Кабо-Верде': 'CPV', 'Черногория': 'MNE', 'Перу': 'PER', 'Гвинея': 'GUI', 'Тунис': 'TUN',
-      'Румыния': 'ROU', 'Австрия': 'AUT', 'Болгария': 'BUL'
+    const COUNTRY_FLAGS = {
+      'Россия': '🇷🇺',
+      'Беларусь': '🇧🇾',
+      'Казахстан': '🇰🇿',
+      'Армения': '🇦🇲',
+      'Кыргызстан': '🇰🇬',
+      'Бразилия': '🇧🇷',
+      'Аргентина': '🇦🇷',
+      'Сербия': '🇷🇸',
+      'Франция': '🇫🇷',
+      'Колумбия': '🇨🇴',
+      'Албания': '🇦🇱',
+      'Нигерия': '🇳🇬',
+      'Уругвай': '🇺🇾',
+      'Парагвай': '🇵🇾',
+      'Боливия': '🇧🇴',
+      'Чили': '🇨🇱',
+      'Португалия': '🇵🇹',
+      'Испания': '🇪🇸',
+      'Италия': '🇮🇹',
+      'Словения': '🇸🇮',
+      'Хорватия': '🇭🇷',
+      'Босния и Герцеговина': '🇧🇦',
+      'Марокко': '🇲🇦',
+      'Алжир': '🇩🇿',
+      'Ангола': '🇦🇴',
+      'Кот-д`Ивуар': '🇨🇮',
+      'Сенегал': '🇸🇳',
+      'Гондурас': '🇭🇳',
+      'Панама': '🇵🇦',
+      'Коста-Рика': '🇨🇷',
+      'Мексика': '🇲🇽',
+      'Иран': '🇮🇷',
+      'Узбекистан': '🇺🇿',
+      'Туркменистан': '🇹🇲',
+      'Люксембург': '🇱🇺',
+      'Кабо-Верде': '🇨🇻',
+      'Черногория': '🇲🇪',
+      'Перу': '🇵🇪',
+      'Гвинея': '🇬🇳',
+      'Тунис': '🇹🇳',
+      'Румыния': '🇷🇴',
+      'Австрия': '🇦🇹',
+      'Болгария': '🇧🇬'
     };
 
     const EAES_COUNTRIES = ['Россия', 'Беларусь', 'Казахстан', 'Армения', 'Кыргызстан'];
 
-    function getCountryCode(country) {
-      return COUNTRY_CODES[country] || 'INT';
+    function getFlag(country) {
+      return COUNTRY_FLAGS[country] || '🌐';
     }
 
     const CLUB_THEMES = {
@@ -376,16 +415,16 @@
       return counts;
     }
 
-    // Игроки из стран ЕАЭС не считаются легионерами
-    function getEaesCount() {
-      return Object.values(getAllSlots()).filter(p => p && EAES_COUNTRIES.includes(p.country)).length;
+    // Лимит ЕАЭС считается ТОЛЬКО по стартовому составу (11)
+    function getStartingEaesCount() {
+      return Object.values(state.starting).filter(p => p && EAES_COUNTRIES.includes(p.country)).length;
     }
 
     function handleSlotClick(slot, role) {
       if (state.isDraftFinished) return;
 
       const current = slot.startsWith('BENCH_') ? state.bench[slot] : state.starting[slot];
-      if (current) return; // Если игрок уже есть, слот доступен для драг-н-дропа
+      if (current) return;
 
       state.activeTargetSlot = slot;
       state.activeTargetRole = role;
@@ -420,15 +459,15 @@
 
       cards.forEach((card, index) => {
         const theme = getClubTheme(card.club);
-        const code = getCountryCode(card.country);
+        const flag = getFlag(card.country);
         const cardEl = document.createElement('div');
         
-        cardEl.className = `card-anim opacity-0 scale-75 flex-1 p-2.5 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-44 cursor-pointer active:scale-95 transition-all`;
+        cardEl.className = `card-anim opacity-0 scale-75 flex-1 p-2.5 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-48 cursor-pointer active:scale-95`;
         
         cardEl.innerHTML = `
           <div>
             <div class="flex justify-between items-center px-1">
-              <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-700 text-slate-300">[${code}]</span>
+              <span class="text-base">${flag}</span>
               <span class="text-[8px] font-bold text-slate-400 truncate max-w-[50px]">${card.country}</span>
             </div>
             <span class="text-[9px] font-black ${theme.text} uppercase tracking-wide block truncate mt-1">${card.club}</span>
@@ -444,10 +483,11 @@
         cardEl.onclick = () => selectCardFromPack(card);
         container.appendChild(cardEl);
 
+        // Более долгая и плавная анимация появления
         setTimeout(() => {
           cardEl.classList.remove('opacity-0', 'scale-75');
           cardEl.classList.add('opacity-100', 'scale-100');
-        }, index * 100);
+        }, index * 250);
       });
     }
 
@@ -466,7 +506,7 @@
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // Настройка Drag and Drop
+    // Drag and drop логика
     function setupDragAndDrop(slotEl, slot) {
       slotEl.draggable = true;
 
@@ -503,7 +543,6 @@
           return;
         }
 
-        // Обмен местами
         const srcIsBench = srcSlot.startsWith('BENCH_');
         const targetIsBench = slot.startsWith('BENCH_');
 
@@ -541,14 +580,30 @@
       }
 
       const theme = getClubTheme(p.club);
-      const code = getCountryCode(p.country);
+      const flag = getFlag(p.country);
       const isCaptain = state.captainSlot === slot;
       const shortName = p.name.split(' ').pop();
 
-      document.getElementById(`val-${slot}`).innerText = `[${code}] ${shortName}${isCaptain ? ' (C)' : ''}`;
+      document.getElementById(`val-${slot}`).innerText = `${flag} ${shortName}`;
       document.getElementById(`club-${slot}`).innerText = p.club;
       document.getElementById(`club-${slot}`).className = `text-[8px] truncate font-bold ${theme.text}`;
-      slotEl.className = `slot-card p-1 border-2 ${theme.border} bg-gradient-to-b ${theme.bg} rounded-xl text-center cursor-grab active:cursor-grabbing`;
+      
+      let baseClasses = `slot-card p-1 border-2 ${theme.border} bg-gradient-to-b ${theme.bg} rounded-xl text-center cursor-grab active:cursor-grabbing relative`;
+      if (isCaptain) {
+        baseClasses += ' ring-2 ring-amber-400';
+      }
+      slotEl.className = baseClasses;
+
+      // Добавляем бейдж капитана если назначен
+      const existingBadge = slotEl.querySelector('.cap-tag');
+      if (isCaptain && !existingBadge) {
+        const badge = document.createElement('span');
+        badge.className = 'cap-tag absolute -top-1.5 -right-1.5 captain-badge text-slate-950 font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center';
+        badge.innerText = 'C';
+        slotEl.appendChild(badge);
+      } else if (!isCaptain && existingBadge) {
+        existingBadge.remove();
+      }
     }
 
     function updateGameStats() {
@@ -556,11 +611,11 @@
       const filledCount = Object.values(all).filter(Boolean).length;
       document.getElementById('draftProgressBadge').innerText = `${filledCount} / 15`;
 
-      // Лимит ЕАЭС / РФ
-      const eaes = getEaesCount();
+      // Лимит ЕАЭС (в стартовых 11)
+      const eaesStarting = getStartingEaesCount();
       const rfLabel = document.getElementById('rfLimitLabel');
-      rfLabel.innerText = `${eaes} / 4`;
-      rfLabel.className = `font-bold ${eaes >= 4 ? 'text-emerald-400' : 'text-red-400'}`;
+      rfLabel.innerText = `${eaesStarting} / 4`;
+      rfLabel.className = `font-bold ${eaesStarting >= 4 ? 'text-emerald-400' : 'text-red-400'}`;
 
       // Лимит клуба
       const clubCounts = getClubCounts();
@@ -610,8 +665,8 @@
         return;
       }
 
-      if (getEaesCount() < 4) {
-        alert('Лимит нарушен: в заявке должно быть минимум 4 игрока из стран ЕАЭС (РФ, Беларусь, Казахстан, Армения, Кыргызстан)!');
+      if (getStartingEaesCount() < 4) {
+        alert('Лимит нарушен: в стартовом составе (11) должно быть минимум 4 футболиста из стран ЕАЭС (РФ, Беларусь, Казахстан, Армения, Кыргызстан)!');
         return;
       }
 
@@ -631,19 +686,19 @@
         if (!p) return;
 
         const theme = getClubTheme(p.club);
-        const code = getCountryCode(p.country);
+        const flag = getFlag(p.country);
         const itemEl = document.createElement('div');
         
-        itemEl.className = `p-2 bg-gradient-to-r ${theme.bg} border ${theme.border} rounded-xl flex items-center justify-between cursor-pointer active:scale-95 transition`;
+        itemEl.className = `p-2.5 bg-gradient-to-r ${theme.bg} border ${theme.border} rounded-xl flex items-center justify-between cursor-pointer active:scale-95 transition`;
         itemEl.innerHTML = `
           <div class="flex items-center gap-2">
-            <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300">[${code}]</span>
+            <span class="text-base">${flag}</span>
             <div>
               <div class="font-bold text-xs text-white">${p.name}</div>
               <div class="text-[9px] ${theme.text}">${p.club}</div>
             </div>
           </div>
-          <span class="text-[9px] font-black px-2 py-1 bg-amber-500 text-slate-950 rounded-lg">НАЗНАЧИТЬ (C)</span>
+          <span class="text-[9px] font-black px-2.5 py-1 bg-amber-500 text-slate-950 rounded-lg">ВЫБРАТЬ (C)</span>
         `;
 
         itemEl.onclick = () => setCaptain(slot);
@@ -651,33 +706,61 @@
       });
     }
 
+    function triggerConfettiExplosion() {
+      if (typeof confetti === 'function') {
+        // Запуск двух мощных волн салюта из центра
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        setTimeout(() => {
+          confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+          });
+          confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+          });
+        }, 150);
+      }
+    }
+
     function setCaptain(slot) {
       state.captainSlot = slot;
       state.isDraftFinished = true;
       document.getElementById('captainModal').classList.add('hidden');
 
+      // Перерисовываем слоты с плашкой (C)
       Object.keys(state.starting).forEach(s => renderSlot(s, state.starting[s]));
 
       document.getElementById('finishDraftBtn').classList.add('hidden');
       document.getElementById('shareBtn').classList.remove('hidden');
 
+      // Анимация взрыва частиц
+      triggerConfettiExplosion();
+
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-      alert(`Капитан команды: ${state.starting[slot].name}!`);
     }
 
     function shareRoster() {
       const cap = state.starting[state.captainSlot];
       const chem = document.getElementById('chemBonusValue').innerText;
 
-      const text = `МОЙ СОСТАВ РПЛ ФЭНТЕЗИ:\n` +
-        `Капитан (C): ${cap ? cap.name + ' (' + cap.club + ')' : 'Не выбран'}\n` +
-        `Сыгранность: ${chem}\n\n` +
-        `СТАРТ 11:\n` +
-        `ВРТ: ${state.starting.GK?.name}\n` +
-        `ЗАЩ: ${state.starting.DEF1?.name}, ${state.starting.DEF2?.name}, ${state.starting.DEF3?.name}, ${state.starting.DEF4?.name}\n` +
-        `ПЗ: ${state.starting.MID1?.name}, ${state.starting.MID2?.name}, ${state.starting.MID3?.name}\n` +
-        `НАП: ${state.starting.FWD1?.name}, ${state.starting.FWD2?.name}, ${state.starting.FWD3?.name}\n\n` +
-        `ЗАПАС:\n` +
+      const text = `📋 МОЙ СОСТАВ РПЛ ФЭНТЕЗИ:\n` +
+        `👑 Капитан (C): ${cap ? cap.name + ' (' + cap.club + ')' : 'Не выбран'}\n` +
+        `⚡ Сыгранность: ${chem}\n\n` +
+        `🟢 СТАРТ 11:\n` +
+        `🧤 ВРТ: ${state.starting.GK?.name}\n` +
+        `🛡️ ЗАЩ: ${state.starting.DEF1?.name}, ${state.starting.DEF2?.name}, ${state.starting.DEF3?.name}, ${state.starting.DEF4?.name}\n` +
+        `🎯 ПЗ: ${state.starting.MID1?.name}, ${state.starting.MID2?.name}, ${state.starting.MID3?.name}\n` +
+        `⚡ НАП: ${state.starting.FWD1?.name}, ${state.starting.FWD2?.name}, ${state.starting.FWD3?.name}\n\n` +
+        `🔵 ЗАПАС:\n` +
         `${state.bench.BENCH_GK?.name}, ${state.bench.BENCH_DEF?.name}, ${state.bench.BENCH_MID?.name}, ${state.bench.BENCH_FWD?.name}`;
 
       if (tg) {

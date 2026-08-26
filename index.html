@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>РПЛ Фэнтези: Трансферный Драфт</title>
+  <title>РПЛ Фэнтези: Драфт</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -15,7 +15,6 @@
             bgDark: '#080c14',
             cardDark: '#111827',
             accentGreen: '#10b981',
-            accentGold: '#f59e0b',
           }
         }
       }
@@ -45,13 +44,8 @@
       0% { transform: scale(1); }
       100% { transform: scale(1.05); }
     }
-    /* 3D карточки пака */
-    .card-3d {
-      transform-style: preserve-3d;
-      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
-    }
-    .card-glow {
-      box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);
+    .card-anim {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
     }
   </style>
 </head>
@@ -61,34 +55,30 @@
     <!-- Шапка -->
     <header class="flex items-center justify-between border-b border-slate-800 pb-2">
       <div>
-        <h1 class="text-xs font-black tracking-wide text-white uppercase flex items-center gap-1.5">
-          <span>⚽ РПЛ: ДРАФТ ПАКИ</span>
+        <h1 class="text-xs font-black tracking-wide text-white uppercase">
+          РПЛ: ТРАНСФЕРНЫЙ ДРАФТ
         </h1>
-        <p class="text-[10px] text-slate-400">Тяни пак и собирай основу</p>
+        <p class="text-[10px] text-slate-400">Собери 11 игроков через паки</p>
       </div>
-      <div id="riskBadge" class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
-        x1
+      <div id="draftProgressBadge" class="bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
+        0 / 11
       </div>
     </header>
 
-    <!-- Блок «Трансферный Пак» над полем -->
-    <section class="p-3 bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border border-amber-500/40 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden">
+    <!-- Виджет «Трансферный Пак» над полем -->
+    <section class="p-3 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden">
       <div class="space-y-0.5 z-10">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">📦</span>
-          <span class="text-xs font-black text-amber-400 tracking-wider uppercase">Трансферный Пак</span>
-        </div>
-        <p id="packStatusLabel" class="text-[10px] text-slate-300">Нажми, чтобы вскрыть 3 игроков</p>
+        <div class="text-xs font-black text-white tracking-wider uppercase">ТРАНСФЕРНЫЙ ПАК</div>
+        <p id="packStatusLabel" class="text-[10px] text-slate-400">Доступны 3 кандидата на открытую позицию</p>
       </div>
-      <button onclick="triggerDraftPack()" id="openPackBtn" class="z-10 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg active:scale-95 transition flex items-center gap-1">
-        ✨ Вскрыть
+      <button onclick="triggerDraftPack()" id="openPackBtn" class="z-10 px-4 py-2 bg-accentGreen hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg active:scale-95 transition">
+        Открыть
       </button>
-      <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
     </section>
 
     <!-- Подсказка при выбранной карточке -->
-    <div id="placementBanner" class="hidden p-2 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-center text-xs font-bold text-emerald-300 animate-pulse">
-      👉 Кликни по свободному слоту на поле для установки
+    <div id="placementBanner" class="hidden p-2 bg-emerald-950/90 border border-emerald-500/50 rounded-xl text-center text-xs font-bold text-emerald-300">
+      Выберите свободный подсвеченный слот на поле
     </div>
 
     <!-- Футбольное поле -->
@@ -103,72 +93,72 @@
 
         <!-- 1. Нападающие (3 слота) -->
         <div class="grid grid-cols-3 gap-1.5 z-10">
-          <button onclick="handleSlotClick('FWD1', 'FWD')" id="slot-FWD1" class="slot-card p-1.5 border border-emerald-500/30 rounded-xl text-center active:scale-95">
-            <span class="text-[9px] text-emerald-400 font-bold uppercase block">Нападающий</span>
+          <button onclick="handleSlotClick('FWD1', 'FWD')" id="slot-FWD1" class="slot-card p-1.5 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Нападающий</span>
             <div id="val-FWD1" class="text-[11px] font-bold text-white truncate">+ Слот 1</div>
-            <div id="club-FWD1" class="text-[9px] text-slate-400 truncate">Свободно</div>
+            <div id="club-FWD1" class="text-[9px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('FWD2', 'FWD')" id="slot-FWD2" class="slot-card p-1.5 border border-emerald-500/40 rounded-xl text-center active:scale-95 bg-slate-900/95">
-            <span class="text-[9px] text-emerald-400 font-black uppercase block">Нападающий</span>
+          <button onclick="handleSlotClick('FWD2', 'FWD')" id="slot-FWD2" class="slot-card p-1.5 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Нападающий</span>
             <div id="val-FWD2" class="text-[11px] font-bold text-white truncate">+ Слот 2</div>
-            <div id="club-FWD2" class="text-[9px] text-slate-400 truncate">Свободно</div>
+            <div id="club-FWD2" class="text-[9px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('FWD3', 'FWD')" id="slot-FWD3" class="slot-card p-1.5 border border-emerald-500/30 rounded-xl text-center active:scale-95">
-            <span class="text-[9px] text-emerald-400 font-bold uppercase block">Нападающий</span>
+          <button onclick="handleSlotClick('FWD3', 'FWD')" id="slot-FWD3" class="slot-card p-1.5 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Нападающий</span>
             <div id="val-FWD3" class="text-[11px] font-bold text-white truncate">+ Слот 3</div>
-            <div id="club-FWD3" class="text-[9px] text-slate-400 truncate">Свободно</div>
+            <div id="club-FWD3" class="text-[9px] text-slate-500 truncate">Свободно</div>
           </button>
         </div>
 
         <!-- 2. Полузащитники (3 слота) -->
         <div class="grid grid-cols-3 gap-1.5 z-10 my-auto">
-          <button onclick="handleSlotClick('MID1', 'MID')" id="slot-MID1" class="slot-card p-1.5 border border-amber-500/30 rounded-xl text-center active:scale-95">
-            <span class="text-[9px] text-amber-400 font-bold uppercase block">Полузащитник</span>
+          <button onclick="handleSlotClick('MID1', 'MID')" id="slot-MID1" class="slot-card p-1.5 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Полузащитник</span>
             <div id="val-MID1" class="text-[11px] font-bold text-white truncate">+ Слот 1</div>
-            <div id="club-MID1" class="text-[9px] text-slate-400 truncate">Свободно</div>
+            <div id="club-MID1" class="text-[9px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('MID2', 'MID')" id="slot-MID2" class="slot-card p-1.5 border border-amber-500/40 rounded-xl text-center active:scale-95 bg-slate-900/95">
-            <span class="text-[9px] text-amber-400 font-black uppercase block">Полузащитник</span>
+          <button onclick="handleSlotClick('MID2', 'MID')" id="slot-MID2" class="slot-card p-1.5 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Полузащитник</span>
             <div id="val-MID2" class="text-[11px] font-bold text-white truncate">+ Слот 2</div>
-            <div id="club-MID2" class="text-[9px] text-slate-400 truncate">Свободно</div>
+            <div id="club-MID2" class="text-[9px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('MID3', 'MID')" id="slot-MID3" class="slot-card p-1.5 border border-amber-500/30 rounded-xl text-center active:scale-95">
-            <span class="text-[9px] text-amber-400 font-bold uppercase block">Полузащитник</span>
+          <button onclick="handleSlotClick('MID3', 'MID')" id="slot-MID3" class="slot-card p-1.5 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Полузащитник</span>
             <div id="val-MID3" class="text-[11px] font-bold text-white truncate">+ Слот 3</div>
-            <div id="club-MID3" class="text-[9px] text-slate-400 truncate">Свободно</div>
+            <div id="club-MID3" class="text-[9px] text-slate-500 truncate">Свободно</div>
           </button>
         </div>
 
         <!-- 3. Защитники (4 слота) -->
         <div class="grid grid-cols-4 gap-1 z-10">
-          <button onclick="handleSlotClick('DEF1', 'DEF')" id="slot-DEF1" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
-            <span class="text-[8px] text-blue-400 font-bold uppercase block">Защитник</span>
+          <button onclick="handleSlotClick('DEF1', 'DEF')" id="slot-DEF1" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Защитник</span>
             <div id="val-DEF1" class="text-[10px] font-bold text-white truncate">+ Слот 1</div>
-            <div id="club-DEF1" class="text-[8px] text-slate-400 truncate">Свободно</div>
+            <div id="club-DEF1" class="text-[8px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('DEF2', 'DEF')" id="slot-DEF2" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
-            <span class="text-[8px] text-blue-400 font-bold uppercase block">Защитник</span>
+          <button onclick="handleSlotClick('DEF2', 'DEF')" id="slot-DEF2" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Защитник</span>
             <div id="val-DEF2" class="text-[10px] font-bold text-white truncate">+ Слот 2</div>
-            <div id="club-DEF2" class="text-[8px] text-slate-400 truncate">Свободно</div>
+            <div id="club-DEF2" class="text-[8px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('DEF3', 'DEF')" id="slot-DEF3" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
-            <span class="text-[8px] text-blue-400 font-bold uppercase block">Защитник</span>
+          <button onclick="handleSlotClick('DEF3', 'DEF')" id="slot-DEF3" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Защитник</span>
             <div id="val-DEF3" class="text-[10px] font-bold text-white truncate">+ Слот 3</div>
-            <div id="club-DEF3" class="text-[8px] text-slate-400 truncate">Свободно</div>
+            <div id="club-DEF3" class="text-[8px] text-slate-500 truncate">Свободно</div>
           </button>
-          <button onclick="handleSlotClick('DEF4', 'DEF')" id="slot-DEF4" class="slot-card p-1 border border-blue-500/30 rounded-lg text-center active:scale-95">
-            <span class="text-[8px] text-blue-400 font-bold uppercase block">Защитник</span>
+          <button onclick="handleSlotClick('DEF4', 'DEF')" id="slot-DEF4" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Защитник</span>
             <div id="val-DEF4" class="text-[10px] font-bold text-white truncate">+ Слот 4</div>
-            <div id="club-DEF4" class="text-[8px] text-slate-400 truncate">Свободно</div>
+            <div id="club-DEF4" class="text-[8px] text-slate-500 truncate">Свободно</div>
           </button>
         </div>
 
         <!-- 4. Вратарь (1 слот) -->
         <div class="flex justify-center z-10 pt-1">
-          <button onclick="handleSlotClick('GK', 'GK')" id="slot-GK" class="slot-card w-28 p-1 border border-purple-500/40 rounded-xl text-center active:scale-95">
-            <span class="text-[8px] text-purple-400 font-bold uppercase block">Вратарь</span>
+          <button onclick="handleSlotClick('GK', 'GK')" id="slot-GK" class="slot-card w-28 p-1 border border-slate-700 rounded-xl text-center active:scale-95">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">Вратарь</span>
             <div id="val-GK" class="text-[10px] font-bold text-white truncate">+ Вратарь</div>
-            <div id="club-GK" class="text-[8px] text-slate-400 truncate">Свободно</div>
+            <div id="club-GK" class="text-[8px] text-slate-500 truncate">Свободно</div>
           </button>
         </div>
 
@@ -178,9 +168,9 @@
     <!-- Модалка вскрытия пака -->
     <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
       <div class="text-center space-y-1 mb-6">
-        <div id="modalPackRole" class="text-xs font-black text-amber-400 uppercase tracking-widest animate-pulse">РАСПАКОВКА...</div>
-        <h2 class="text-lg font-black text-white uppercase">Выбери 1 игрока</h2>
-        <p class="text-[11px] text-slate-400">Один футболист отправится в основу</p>
+        <div id="modalPackRole" class="text-xs font-black text-slate-400 uppercase tracking-widest">ВЫБОР КАНДИДАТА</div>
+        <h2 class="text-base font-black text-white uppercase">Выберите 1 игрока</h2>
+        <p class="text-[11px] text-slate-400">Нажмите на карточку для добавления в состав</p>
       </div>
 
       <!-- Контейнер с 3 карточками -->
@@ -191,7 +181,7 @@
   <!-- Футер -->
   <div class="pt-2">
     <button id="mainActionBtn" onclick="shareRoster()" class="w-full py-3 bg-accentGreen text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5">
-      🚀 Сохранить состав (0/11)
+      Сохранить состав (0/11)
     </button>
   </div>
 
@@ -202,14 +192,38 @@
       tg.ready();
     }
 
+    // Официальные цвета клубов РПЛ
+    const CLUB_THEMES = {
+      'Зенит': { bg: 'from-sky-950 via-sky-900 to-slate-950', border: 'border-sky-400', text: 'text-sky-400', badgeBg: 'bg-sky-500/20' },
+      'Краснодар': { bg: 'from-emerald-950 via-emerald-900 to-slate-950', border: 'border-emerald-500', text: 'text-emerald-400', badgeBg: 'bg-emerald-500/20' },
+      'Спартак-Москва': { bg: 'from-red-950 via-red-900 to-slate-950', border: 'border-red-500', text: 'text-red-400', badgeBg: 'bg-red-500/20' },
+      'ПФК ЦСКА': { bg: 'from-blue-950 via-red-950 to-slate-950', border: 'border-red-400', text: 'text-blue-400', badgeBg: 'bg-red-500/20' },
+      'Локомотив': { bg: 'from-emerald-950 via-red-950 to-slate-950', border: 'border-emerald-400', text: 'text-emerald-400', badgeBg: 'bg-emerald-500/20' },
+      'Динамо-Москва': { bg: 'from-blue-950 via-blue-900 to-slate-950', border: 'border-blue-400', text: 'text-blue-300', badgeBg: 'bg-blue-500/20' },
+      'Ростов': { bg: 'from-yellow-950 via-blue-950 to-slate-950', border: 'border-yellow-400', text: 'text-yellow-400', badgeBg: 'bg-yellow-500/20' },
+      'Рубин': { bg: 'from-red-950 via-emerald-950 to-slate-950', border: 'border-red-500', text: 'text-red-400', badgeBg: 'bg-red-500/20' },
+      'Крылья Советов': { bg: 'from-cyan-950 via-blue-950 to-slate-950', border: 'border-cyan-400', text: 'text-cyan-300', badgeBg: 'bg-cyan-500/20' },
+      'Ахмат': { bg: 'from-emerald-950 via-green-900 to-slate-950', border: 'border-green-500', text: 'text-green-400', badgeBg: 'bg-green-500/20' },
+      'Факел': { bg: 'from-blue-950 via-slate-900 to-slate-950', border: 'border-blue-500', text: 'text-blue-400', badgeBg: 'bg-blue-500/20' },
+      'Оренбург': { bg: 'from-blue-950 via-sky-900 to-slate-950', border: 'border-sky-400', text: 'text-sky-300', badgeBg: 'bg-sky-500/20' },
+      'Динамо Махачкала': { bg: 'from-blue-950 via-slate-900 to-slate-950', border: 'border-blue-400', text: 'text-blue-400', badgeBg: 'bg-blue-500/20' },
+      'Акрон': { bg: 'from-red-950 via-slate-900 to-slate-950', border: 'border-red-500', text: 'text-red-400', badgeBg: 'bg-red-500/20' },
+      'Балтика': { bg: 'from-blue-950 via-sky-950 to-slate-950', border: 'border-blue-400', text: 'text-blue-300', badgeBg: 'bg-blue-500/20' },
+      'Родина': { bg: 'from-cyan-950 via-slate-900 to-slate-950', border: 'border-cyan-500', text: 'text-cyan-400', badgeBg: 'bg-cyan-500/20' }
+    };
+
+    const DEFAULT_THEME = { bg: 'from-slate-800 to-slate-900', border: 'border-slate-600', text: 'text-slate-300', badgeBg: 'bg-slate-700/50' };
+
+    function getClubTheme(clubName) {
+      return CLUB_THEMES[clubName] || DEFAULT_THEME;
+    }
+
     let rplDatabase = { GK: [], DEF: [], MID: [], FWD: [] };
 
-    // Загрузка актуального players.json
     async function initPlayers() {
       try {
         const res = await fetch('./players.json?v=' + Date.now());
         rplDatabase = await res.json();
-        console.log('База РПЛ готова!');
       } catch (err) {
         console.error('Ошибка загрузки players.json:', err);
       }
@@ -227,39 +241,59 @@
       currentPackRole: null
     };
 
-    const ROLES = [
-      { key: 'GK', title: 'Вратари' },
-      { key: 'DEF', title: 'Защитники' },
-      { key: 'MID', title: 'Полузащитники' },
-      { key: 'FWD', title: 'Нападающие' }
-    ];
+    const ROLE_LABELS = {
+      GK: 'ВРАТАРИ',
+      DEF: 'ЗАЩИТНИКИ',
+      MID: 'ПОЛУЗАЩИТНИКИ',
+      FWD: 'НАПАДАЮЩИЕ'
+    };
 
-    // Вскрытие пака
+    // Проверка, какие амплуа еще имеют свободные слоты
+    function getAvailableRoles() {
+      const freeRoles = new Set();
+      Object.keys(state.roster).forEach(slot => {
+        if (!state.roster[slot]) {
+          if (slot.startsWith('FWD')) freeRoles.add('FWD');
+          if (slot.startsWith('MID')) freeRoles.add('MID');
+          if (slot.startsWith('DEF')) freeRoles.add('DEF');
+          if (slot === 'GK') freeRoles.add('GK');
+        }
+      });
+      return Array.from(freeRoles);
+    }
+
+    // Открытие пака со строгой фильтрацией доступных позиций
     function triggerDraftPack() {
-      // 1. Выбираем случайную позицию из доступных
-      const randomRole = ROLES[Math.floor(Math.random() * ROLES.length)];
-      state.currentPackRole = randomRole.key;
-
-      const pool = rplDatabase[randomRole.key] || [];
-      if (pool.length < 3) {
-        alert('База игроков загружается, подождите 2 секунды...');
+      const availableRoles = getAvailableRoles();
+      
+      if (availableRoles.length === 0) {
+        alert('Все 11 позиций уже укомплектованы!');
         return;
       }
 
-      // 2. Выбираем 3 случайных уникальных игрока
+      // Случайно выбираем ТОЛЬКО из незаполненных позиций
+      const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+      state.currentPackRole = randomRole;
+
+      const pool = rplDatabase[randomRole] || [];
+      if (pool.length < 3) {
+        alert('База игроков загружается, повторите через 2 секунды');
+        return;
+      }
+
+      // 3 случайных уникальных игрока
       const shuffled = [...pool].sort(() => 0.5 - Math.random());
       const selectedThree = shuffled.slice(0, 3);
 
-      // 3. Открываем окно с анимацией
-      showPackModal(selectedThree, randomRole.title);
+      showPackModal(selectedThree, randomRole);
     }
 
-    function showPackModal(cards, roleTitle) {
+    function showPackModal(cards, roleKey) {
       const modal = document.getElementById('packModal');
       const container = document.getElementById('packCardsContainer');
       const roleBadge = document.getElementById('modalPackRole');
 
-      roleBadge.innerText = `ПАК ПОЗИЦИИ: ${roleTitle}`;
+      roleBadge.innerText = `ПАК АМПЛУА: ${ROLE_LABELS[roleKey]}`;
       container.innerHTML = '';
       modal.classList.remove('hidden');
 
@@ -268,50 +302,49 @@
       }
 
       cards.forEach((card, index) => {
+        const theme = getClubTheme(card.club);
         const cardEl = document.createElement('div');
-        cardEl.className = 'card-3d opacity-0 scale-75 flex-1 p-3 bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-amber-500/40 rounded-2xl text-center shadow-2xl flex flex-col justify-between h-44 cursor-pointer active:scale-95 transition-all';
+        
+        cardEl.className = `card-anim opacity-0 scale-75 flex-1 p-3 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-44 cursor-pointer active:scale-95 transition-all`;
         
         cardEl.innerHTML = `
           <div>
-            <span class="text-[9px] font-black text-amber-400 uppercase tracking-wide block">${card.club}</span>
-            <div class="my-2 text-3xl">🏃‍♂️</div>
+            <span class="text-[9px] font-black ${theme.text} uppercase tracking-wide block truncate">${card.club}</span>
+            <div class="h-0.5 w-6 mx-auto my-1.5 ${theme.badgeBg} rounded"></div>
+          </div>
+          <div class="my-auto">
+            <div class="font-black text-xs text-white leading-snug break-words">${card.name}</div>
           </div>
           <div>
-            <div class="font-black text-[11px] text-white leading-tight mb-1">${card.name}</div>
-            <span class="text-[8px] font-bold px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/30">ВЫБРАТЬ</span>
+            <span class="text-[8px] font-black px-2 py-0.5 rounded ${theme.badgeBg} ${theme.text} border ${theme.border}">ВЫБРАТЬ</span>
           </div>
         `;
 
         cardEl.onclick = () => selectCardFromPack(card);
         container.appendChild(cardEl);
 
-        // Поочередное появление с приятным эффектом
         setTimeout(() => {
           cardEl.classList.remove('opacity-0', 'scale-75');
-          cardEl.classList.add('opacity-100', 'scale-100', 'card-glow');
-        }, index * 180);
+          cardEl.classList.add('opacity-100', 'scale-100');
+        }, index * 120);
       });
     }
 
-    // Выбор игрока из 3
     function selectCardFromPack(card) {
       state.selectedPlayerFromPack = card;
       document.getElementById('packModal').classList.add('hidden');
 
       if (tg?.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('heavy');
+        tg.HapticFeedback.impactOccurred('medium');
       }
 
-      // Подсвечиваем доступные слоты на поле
       highlightTargetSlots(state.currentPackRole);
 
-      // Показываем плашку подсказки
       const banner = document.getElementById('placementBanner');
-      banner.innerText = `✅ Выбран: ${card.name} (${card.club}). Кликни по свободному слоту на поле!`;
+      banner.innerText = `Выбран: ${card.name} (${card.club}). Кликните по свободному слоту на поле`;
       banner.classList.remove('hidden');
     }
 
-    // Подсветка подходящих слотов на поле
     function highlightTargetSlots(role) {
       clearHighlights();
       Object.keys(state.roster).forEach(slot => {
@@ -327,25 +360,26 @@
       });
     }
 
-    // Клик по слоту на поле
     function handleSlotClick(slot, slotRole) {
-      // Если игрок только что выбрал футболиста из пака
       if (state.selectedPlayerFromPack) {
         if (state.currentPackRole !== slotRole) {
-          alert(`Этот футболист — ${state.currentPackRole}, его нельзя поставить в позицию ${slotRole}!`);
+          alert(`Этот футболист амплуа ${ROLE_LABELS[state.currentPackRole]}, его нельзя поставить в слот ${ROLE_LABELS[slotRole]}!`);
           return;
         }
 
-        // Ставим игрока в слот
         const p = state.selectedPlayerFromPack;
         state.roster[slot] = p;
 
+        const theme = getClubTheme(p.club);
+        const slotEl = document.getElementById(`slot-${slot}`);
+        
         const shortName = p.name.split(' ').pop();
         document.getElementById(`val-${slot}`).innerText = shortName;
         document.getElementById(`club-${slot}`).innerText = p.club;
-        document.getElementById(`slot-${slot}`).classList.add('border-accentGreen', 'bg-emerald-950/70');
+        document.getElementById(`club-${slot}`).className = `text-[8px] truncate font-bold ${theme.text}`;
+        
+        slotEl.className = `slot-card p-1 border-2 ${theme.border} bg-gradient-to-b ${theme.bg} rounded-xl text-center`;
 
-        // Сброс выбора
         state.selectedPlayerFromPack = null;
         clearHighlights();
         document.getElementById('placementBanner').classList.add('hidden');
@@ -356,34 +390,39 @@
 
         checkComplete();
       } else {
-        // Если пак еще не открыт
         triggerDraftPack();
       }
     }
 
     function checkComplete() {
       const filled = Object.values(state.roster).filter(Boolean).length;
-      document.getElementById('mainActionBtn').innerText = `🚀 Сохранить состав (${filled}/11)`;
+      document.getElementById('draftProgressBadge').innerText = `${filled} / 11`;
+      document.getElementById('mainActionBtn').innerText = `Сохранить состав (${filled}/11)`;
+
+      if (filled === 11) {
+        document.getElementById('packStatusLabel').innerText = 'Все 11 слотов заполнены!';
+        document.getElementById('openPackBtn').classList.add('opacity-50', 'pointer-events-none');
+      }
     }
 
     function shareRoster() {
       const filled = Object.values(state.roster).filter(Boolean).length;
       if (filled < 11) {
-        alert(`Состав заполнен на ${filled} из 11. Открывайте паки дальше!`);
+        alert(`Заполнено ${filled} из 11 позиций. Открывайте паки дальше!`);
         return;
       }
 
-      const text = `📋 МОЙ СТАРТОВЫЙ ДРАФТ РПЛ:\n` +
-        `🧤 ВРТ: ${state.roster.GK.name} (${state.roster.GK.club})\n` +
-        `🛡️ ЗАЩ: ${state.roster.DEF1.name}, ${state.roster.DEF2.name}, ${state.roster.DEF3.name}, ${state.roster.DEF4.name}\n` +
-        `🎯 ПЗ: ${state.roster.MID1.name}, ${state.roster.MID2.name}, ${state.roster.MID3.name}\n` +
-        `⚡ НАП: ${state.roster.FWD1.name}, ${state.roster.FWD2.name}, ${state.roster.FWD3.name}`;
+      const text = `МОЙ ДРАФТ РПЛ:\n` +
+        `ВРТ: ${state.roster.GK.name} (${state.roster.GK.club})\n` +
+        `ЗАЩ: ${state.roster.DEF1.name}, ${state.roster.DEF2.name}, ${state.roster.DEF3.name}, ${state.roster.DEF4.name}\n` +
+        `ПЗ: ${state.roster.MID1.name}, ${state.roster.MID2.name}, ${state.roster.MID3.name}\n` +
+        `НАП: ${state.roster.FWD1.name}, ${state.roster.FWD2.name}, ${state.roster.FWD3.name}`;
 
       if (tg) {
         tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
       } else {
         navigator.clipboard.writeText(text);
-        alert('Состав скопирован!');
+        alert('Состав скопирован в буфер обмена!');
       }
     }
   </script>

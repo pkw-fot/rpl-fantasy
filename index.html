@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>РПЛ Фэнтези: Драфт</title>
+  <title>РПЛ Фэнтези: Про Лига</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -50,7 +50,6 @@
       box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
     }
 
-    /* Анимация ядерного удара */
     @keyframes nukeFlash {
       0% { opacity: 0; }
       15% { opacity: 1; background: #ffffff; }
@@ -92,16 +91,33 @@
   </div>
 
   <div class="space-y-2">
-    <!-- Шапка -->
+    <!-- Шапка с кнопками меню и схемой -->
     <header class="flex items-center justify-between border-b border-slate-800 pb-2">
-      <div>
-        <h1 class="text-xs font-black tracking-wide text-white uppercase">
-          РПЛ: ДРАФТ СОСТАВА
+      <div class="space-y-1">
+        <h1 class="text-xs font-black tracking-wide text-white uppercase flex items-center gap-1.5">
+          <span>РПЛ ФЭНТЕЗИ</span>
         </h1>
-        <p class="text-[10px] text-slate-400">Нажмите на слот для открытия пака</p>
+        <!-- Переключатель тактических схем -->
+        <div class="flex items-center gap-1">
+          <span class="text-[9px] text-slate-400">Схема:</span>
+          <select id="formationSelect" onchange="changeFormation(this.value)" class="bg-slate-800 border border-slate-700 text-emerald-400 text-[10px] font-black rounded px-1.5 py-0.5 focus:outline-none">
+            <option value="4-3-3">4-3-3</option>
+            <option value="4-4-2">4-4-2</option>
+            <option value="3-5-2">3-5-2</option>
+          </select>
+        </div>
       </div>
-      <div id="draftProgressBadge" class="bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
-        0 / 15
+
+      <div class="flex items-center gap-1.5">
+        <button onclick="openHistoryModal()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] rounded-lg border border-slate-700 transition" title="История туров">
+          История
+        </button>
+        <button onclick="openLeaderboardModal()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-[10px] rounded-lg border border-slate-700 transition" title="Лига лидеров">
+          Лига
+        </button>
+        <button onclick="autoFillSquad()" id="autoFillBtn" class="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-[10px] uppercase rounded-lg shadow active:scale-95 transition">
+          ⚡ Авто
+        </button>
       </div>
     </header>
 
@@ -118,76 +134,23 @@
       </div>
     </div>
 
-    <!-- Футбольное поле (11 основы) -->
+    <!-- Футбольное поле (динамическая сетка) -->
     <main class="space-y-2">
       <div class="pitch-bg rounded-2xl p-2 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[370px] border border-emerald-900/60">
         
         <div class="absolute inset-x-0 top-1/2 border-t pitch-line pointer-events-none"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border pitch-line rounded-full pointer-events-none"></div>
 
-        <!-- Нападающие (3) -->
-        <div class="grid grid-cols-3 gap-1.5 z-10">
-          <div onclick="handleSlotClick('FWD1', 'FWD')" id="slot-FWD1" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
-            <div id="val-FWD1" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
-            <div id="club-FWD1" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </div>
-          <div onclick="handleSlotClick('FWD2', 'FWD')" id="slot-FWD2" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
-            <div id="val-FWD2" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
-            <div id="club-FWD2" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </div>
-          <div onclick="handleSlotClick('FWD3', 'FWD')" id="slot-FWD3" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
-            <div id="val-FWD3" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
-            <div id="club-FWD3" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </div>
-        </div>
+        <!-- 1. Нападающие -->
+        <div id="fwdRowContainer" class="grid gap-1.5 z-10"></div>
 
-        <!-- Полузащитники (3) -->
-        <div class="grid grid-cols-3 gap-1.5 z-10 my-auto">
-          <div onclick="handleSlotClick('MID1', 'MID')" id="slot-MID1" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
-            <div id="val-MID1" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
-            <div id="club-MID1" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </div>
-          <div onclick="handleSlotClick('MID2', 'MID')" id="slot-MID2" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
-            <div id="val-MID2" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
-            <div id="club-MID2" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </div>
-          <div onclick="handleSlotClick('MID3', 'MID')" id="slot-MID3" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
-            <div id="val-MID3" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
-            <div id="club-MID3" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </div>
-        </div>
+        <!-- 2. Полузащитники -->
+        <div id="midRowContainer" class="grid gap-1.5 z-10 my-auto"></div>
 
-        <!-- Защитники (4) -->
-        <div class="grid grid-cols-4 gap-1 z-10">
-          <div onclick="handleSlotClick('DEF1', 'DEF')" id="slot-DEF1" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
-            <div id="val-DEF1" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
-            <div id="club-DEF1" class="text-[8px] text-slate-500 truncate">-</div>
-          </div>
-          <div onclick="handleSlotClick('DEF2', 'DEF')" id="slot-DEF2" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
-            <div id="val-DEF2" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
-            <div id="club-DEF2" class="text-[8px] text-slate-500 truncate">-</div>
-          </div>
-          <div onclick="handleSlotClick('DEF3', 'DEF')" id="slot-DEF3" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
-            <div id="val-DEF3" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
-            <div id="club-DEF3" class="text-[8px] text-slate-500 truncate">-</div>
-          </div>
-          <div onclick="handleSlotClick('DEF4', 'DEF')" id="slot-DEF4" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
-            <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
-            <div id="val-DEF4" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
-            <div id="club-DEF4" class="text-[8px] text-slate-500 truncate">-</div>
-          </div>
-        </div>
+        <!-- 3. Защитники -->
+        <div id="defRowContainer" class="grid gap-1 z-10"></div>
 
-        <!-- Вратарь (1) -->
+        <!-- 4. Вратарь -->
         <div class="flex justify-center z-10">
           <div onclick="handleSlotClick('GK', 'GK')" id="slot-GK" class="slot-card w-28 p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ВРТ</span>
@@ -199,30 +162,30 @@
       </div>
 
       <!-- Скамейка запасных (4) -->
-      <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-1.5">
+      <div class="p-2 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
         <div class="flex justify-between items-center px-1">
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">СКАМЕЙКА ЗАПАСНЫХ</span>
-          <span class="text-[9px] text-slate-500">Перетащите для замены с основой</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">СКАМЕЙКА ЗАПАСНЫХ</span>
+          <span class="text-[8px] text-slate-500">Перетащите для замены</span>
         </div>
         <div class="grid grid-cols-4 gap-1.5">
           <div onclick="handleSlotClick('BENCH_GK', 'GK')" id="slot-BENCH_GK" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-purple-400 font-bold uppercase block">Зап. ВРТ</span>
-            <div id="val-BENCH_GK" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
+            <div id="val-BENCH_GK" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-BENCH_GK" class="text-[8px] text-slate-500 truncate">-</div>
           </div>
           <div onclick="handleSlotClick('BENCH_DEF', 'DEF')" id="slot-BENCH_DEF" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-blue-400 font-bold uppercase block">Зап. ЗАЩ</span>
-            <div id="val-BENCH_DEF" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
+            <div id="val-BENCH_DEF" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-BENCH_DEF" class="text-[8px] text-slate-500 truncate">-</div>
           </div>
           <div onclick="handleSlotClick('BENCH_MID', 'MID')" id="slot-BENCH_MID" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-amber-400 font-bold uppercase block">Зап. ПЗ</span>
-            <div id="val-BENCH_MID" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
+            <div id="val-BENCH_MID" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-BENCH_MID" class="text-[8px] text-slate-500 truncate">-</div>
           </div>
           <div onclick="handleSlotClick('BENCH_FWD', 'FWD')" id="slot-BENCH_FWD" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-emerald-400 font-bold uppercase block">Зап. НАП</span>
-            <div id="val-BENCH_FWD" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
+            <div id="val-BENCH_FWD" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-BENCH_FWD" class="text-[8px] text-slate-500 truncate">-</div>
           </div>
         </div>
@@ -251,10 +214,10 @@
         </p>
         <div class="text-[10px] bg-slate-800/80 p-2 rounded-xl text-slate-300 space-y-1 border border-slate-700">
           <div class="font-bold text-emerald-400">Страны ЕАЭС (не легионеры):</div>
-          <div>• 🇷🇺 Россия</div>
-          <div>• 🇧🇾 Беларусь</div>
-          <div>• 🇰🇿 Казахстан</div>
-          <div>• 🇦🇲 Армения</div>
+          <div>• 🇷🇺 Россия[cite: 1]</div>
+          <div>• 🇧🇾 Беларусь[cite: 1]</div>
+          <div>• 🇰🇿 Казахстан[cite: 1]</div>
+          <div>• 🇦🇲 Армения[cite: 1]</div>
           <div>• 🇰🇬 Кыргызстан</div>
         </div>
         <button onclick="toggleLimitInfo()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Понятно</button>
@@ -297,6 +260,43 @@
       </div>
       <div id="captainListContainer" class="max-h-64 overflow-y-auto w-full max-w-xs space-y-1.5 p-1"></div>
     </div>
+
+    <!-- Модалка Истории Туров -->
+    <div id="historyModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-black text-white uppercase">История сохраненных туров</h3>
+          <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+        </div>
+        <div id="historyListContainer" class="max-h-56 overflow-y-auto space-y-2 text-xs"></div>
+        <button onclick="closeHistoryModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Модалка Таблицы Лидеров -->
+    <div id="leaderboardModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-black text-white uppercase">Лига Друзей</h3>
+          <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+        </div>
+        <div class="space-y-1.5 text-xs">
+          <div class="p-2 bg-slate-800/90 rounded-xl border border-amber-500/40 flex justify-between items-center">
+            <span class="font-bold text-white">1. Вы (Текущий состав)</span>
+            <span id="userPointsBadge" class="font-black text-emerald-400">84 pts</span>
+          </div>
+          <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
+            <span>2. Александр С.</span>
+            <span class="font-bold">78 pts</span>
+          </div>
+          <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
+            <span>3. Максим К.</span>
+            <span class="font-bold">71 pts</span>
+          </div>
+        </div>
+        <button onclick="closeLeaderboardModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Закрыть</button>
+      </div>
+    </div>
   </div>
 
   <!-- Футер -->
@@ -316,50 +316,72 @@
       tg.ready();
     }
 
+    // ЗВУКОВОЙ ДВИЖОК (Web Audio API)
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playCardRustle() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      playWhistle() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(2400, this.ctx.currentTime);
+        osc.frequency.setValueAtTime(2800, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.35);
+      },
+      playNukeBoom() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.8);
+        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.8);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.8);
+      }
+    };
+
     const COUNTRY_FLAGS = {
-      'Россия': '🇷🇺',
-      'Беларусь': '🇧🇾',
-      'Казахстан': '🇰🇿',
-      'Армения': '🇦🇲',
-      'Кыргызстан': '🇰🇬',
-      'Бразилия': '🇧🇷',
-      'Аргентина': '🇦🇷',
-      'Сербия': '🇷🇸',
-      'Франция': '🇫🇷',
-      'Колумбия': '🇨🇴',
-      'Албания': '🇦🇱',
-      'Нигерия': '🇳🇬',
-      'Уругвай': '🇺🇾',
-      'Парагвай': '🇵🇾',
-      'Боливия': '🇧🇴',
-      'Чили': '🇨🇱',
-      'Португалия': '🇵🇹',
-      'Испания': '🇪🇸',
-      'Италия': '🇮🇹',
-      'Словения': '🇸🇮',
-      'Хорватия': '🇭🇷',
-      'Босния и Герцеговина': '🇧🇦',
-      'Марокко': '🇲🇦',
-      'Алжир': '🇩🇿',
-      'Ангола': '🇦🇴',
-      'Кот-д`Ивуар': '🇨🇮',
-      'Сенегал': '🇸🇳',
-      'Гондурас': '🇭🇳',
-      'Панама': '🇵🇦',
-      'Коста-Рика': '🇨🇷',
-      'Мексика': '🇲🇽',
-      'Иран': '🇮🇷',
-      'Узбекистан': 'UZB',
-      'Туркменистан': '🇹🇲',
-      'Люксембург': '🇱🇺',
-      'Кабо-Верде': '🇨🇻',
-      'Черногория': '🇲🇪',
-      'Перу': '🇵🇪',
-      'Гвинея': '🇬🇳',
-      'Тунис': '🇹🇳',
-      'Румыния': '🇷🇴',
-      'Австрия': '🇦🇹',
-      'Болгария': '🇧🇬'
+      'Россия': '🇷🇺', 'Беларусь': '🇧🇾', 'Казахстан': '🇰🇿', 'Армения': '🇦🇲', 'Кыргызстан': '🇰🇬',
+      'Бразилия': '🇧🇷', 'Аргентина': '🇦🇷', 'Сербия': '🇷🇸', 'Франция': '🇫🇷', 'Колумбия': '🇨🇴',
+      'Албания': '🇦🇱', 'Нигерия': '🇳🇬', 'Уругвай': '🇺🇾', 'Парагвай': '🇵🇾', 'Боливия': '🇧🇴',
+      'Чили': '🇨🇱', 'Португалия': '🇵🇹', 'Испания': '🇪🇸', 'Италия': '🇮🇹', 'Словения': '🇸🇮',
+      'Хорватия': '🇭🇷', 'Босния и Герцеговина': '🇧🇦', 'Марокко': '🇲🇦', 'Алжир': '🇩🇿', 'Ангола': '🇦🇴',
+      'Кот-д`Ивуар': '🇨🇮', 'Сенегал': '🇸🇳', 'Гондурас': '🇭🇳', 'Панама': '🇵🇦', 'Коста-Рика': '🇨🇷',
+      'Мексика': '🇲🇽', 'Иран': '🇮🇷', 'Узбекистан': 'UZB', 'Туркменистан': '🇹🇲', 'Люксембург': '🇱🇺',
+      'Кабо-Верде': '🇨🇻', 'Черногория': '🇲🇪', 'Перу': '🇵🇪', 'Гвинея': '🇬🇳', 'Тунис': '🇹🇳',
+      'Румыния': '🇷🇴', 'Австрия': '🇦🇹', 'Болгария': '🇧🇬'
     };
 
     const EAES_COUNTRIES = ['Россия', 'Беларусь', 'Казахстан', 'Армения', 'Кыргызстан'];
@@ -393,25 +415,17 @@
       return CLUB_THEMES[clubName] || DEFAULT_THEME;
     }
 
+    const FORMATIONS = {
+      '4-3-3': { DEF: 4, MID: 3, FWD: 3 },
+      '4-4-2': { DEF: 4, MID: 4, FWD: 2 },
+      '3-5-2': { DEF: 3, MID: 5, FWD: 2 }
+    };
+
     let rplDatabase = { GK: [], DEF: [], MID: [], FWD: [] };
 
-    async function initPlayers() {
-      try {
-        const res = await fetch('./players.json?v=' + Date.now());
-        rplDatabase = await res.json();
-      } catch (err) {
-        console.error('Ошибка загрузки players.json:', err);
-      }
-    }
-    initPlayers();
-
     const state = {
-      starting: {
-        FWD1: null, FWD2: null, FWD3: null,
-        MID1: null, MID2: null, MID3: null,
-        DEF1: null, DEF2: null, DEF3: null, DEF4: null,
-        GK: null
-      },
+      formation: '4-3-3',
+      starting: {},
       bench: {
         BENCH_GK: null,
         BENCH_DEF: null,
@@ -452,9 +466,94 @@
       return counts;
     }
 
-    // Подсчет граждан ЕАЭС строго в основе (11)
     function getStartingEaesCount() {
       return Object.values(state.starting).filter(p => p && EAES_COUNTRIES.includes(p.country)).length;
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ И ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ ПОЛЯ
+    async function initApp() {
+      try {
+        const res = await fetch('./players.json?v=' + Date.now());
+        rplDatabase = await res.json();
+      } catch (err) {
+        console.error('Ошибка загрузки players.json:', err);
+      }
+
+      // Проверяем сохраненный прогресс
+      loadSavedState();
+    }
+
+    function buildFormationSlots(fmt) {
+      state.formation = fmt;
+      document.getElementById('formationSelect').value = fmt;
+      const config = FORMATIONS[fmt];
+
+      const fwdCont = document.getElementById('fwdRowContainer');
+      const midCont = document.getElementById('midRowContainer');
+      const defCont = document.getElementById('defRowContainer');
+
+      fwdCont.className = `grid grid-cols-${config.FWD} gap-1.5 z-10`;
+      midCont.className = `grid grid-cols-${config.MID} gap-1.5 z-10 my-auto`;
+      defCont.className = `grid grid-cols-${config.DEF} gap-1 z-10`;
+
+      fwdCont.innerHTML = '';
+      midCont.innerHTML = '';
+      defCont.innerHTML = '';
+
+      const newStarting = { GK: state.starting.GK || null };
+
+      for (let i = 1; i <= config.FWD; i++) {
+        const s = `FWD${i}`;
+        newStarting[s] = state.starting[s] || null;
+        fwdCont.innerHTML += `
+          <div onclick="handleSlotClick('${s}', 'FWD')" id="slot-${s}" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
+            <div id="val-${s}" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
+            <div id="club-${s}" class="text-[8px] text-slate-500 truncate">Свободно</div>
+          </div>
+        `;
+      }
+
+      for (let i = 1; i <= config.MID; i++) {
+        const s = `MID${i}`;
+        newStarting[s] = state.starting[s] || null;
+        midCont.innerHTML += `
+          <div onclick="handleSlotClick('${s}', 'MID')" id="slot-${s}" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
+            <div id="val-${s}" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
+            <div id="club-${s}" class="text-[8px] text-slate-500 truncate">Свободно</div>
+          </div>
+        `;
+      }
+
+      for (let i = 1; i <= config.DEF; i++) {
+        const s = `DEF${i}`;
+        newStarting[s] = state.starting[s] || null;
+        defCont.innerHTML += `
+          <div onclick="handleSlotClick('${s}', 'DEF')" id="slot-${s}" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
+            <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
+            <div id="val-${s}" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
+            <div id="club-${s}" class="text-[8px] text-slate-500 truncate">-</div>
+          </div>
+        `;
+      }
+
+      state.starting = newStarting;
+
+      // Отрисовываем заново карточки
+      Object.keys(state.starting).forEach(s => renderSlot(s, state.starting[s]));
+      Object.keys(state.bench).forEach(s => renderSlot(s, state.bench[s]));
+      updateGameStats();
+    }
+
+    function changeFormation(fmt) {
+      if (state.isDraftFinished) {
+        alert('Состав уже зафиксирован! Сбросьте драфт для смены схемы.');
+        document.getElementById('formationSelect').value = state.formation;
+        return;
+      }
+      buildFormationSlots(fmt);
+      saveCurrentState();
     }
 
     function handleSlotClick(slot, role) {
@@ -463,6 +562,7 @@
       const current = slot.startsWith('BENCH_') ? state.bench[slot] : state.starting[slot];
       if (current) return;
 
+      AudioEngine.playCardRustle();
       state.activeTargetSlot = slot;
       state.activeTargetRole = role;
 
@@ -528,6 +628,7 @@
     }
 
     function selectCardFromPack(card) {
+      AudioEngine.playCardRustle();
       const slot = state.activeTargetSlot;
       if (slot.startsWith('BENCH_')) {
         state.bench[slot] = card;
@@ -538,8 +639,74 @@
       document.getElementById('packModal').classList.add('hidden');
       renderSlot(slot, card);
       updateGameStats();
+      saveCurrentState();
 
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    }
+
+    function autoFillSquad() {
+      if (state.isDraftFinished) return;
+
+      AudioEngine.playWhistle();
+      Object.keys(state.starting).forEach(k => state.starting[k] = null);
+      Object.keys(state.bench).forEach(k => state.bench[k] = null);
+      state.captainSlot = null;
+
+      const clubUsage = {};
+      const selectedNames = new Set();
+
+      function pickPlayer(role, forceEaes = false) {
+        const pool = (rplDatabase[role] || []).filter(p => {
+          if (selectedNames.has(p.name)) return false;
+          if ((clubUsage[p.club] || 0) >= 3) return false;
+          if (forceEaes && !EAES_COUNTRIES.includes(p.country)) return false;
+          return true;
+        });
+
+        if (pool.length === 0) {
+          return (rplDatabase[role] || []).find(p => !selectedNames.has(p.name));
+        }
+
+        pool.sort((a, b) => {
+          const aCount = clubUsage[a.club] || 0;
+          const bCount = clubUsage[b.club] || 0;
+          return bCount - aCount;
+        });
+
+        const chosen = pool[0];
+        if (chosen) {
+          selectedNames.add(chosen.name);
+          clubUsage[chosen.club] = (clubUsage[chosen.club] || 0) + 1;
+        }
+        return chosen;
+      }
+
+      state.starting.GK = pickPlayer('GK', true);
+      const config = FORMATIONS[state.formation];
+
+      for (let i = 1; i <= config.DEF; i++) {
+        state.starting[`DEF${i}`] = pickPlayer('DEF', i <= 3);
+      }
+      for (let i = 1; i <= config.MID; i++) {
+        state.starting[`MID${i}`] = pickPlayer('MID');
+      }
+      for (let i = 1; i <= config.FWD; i++) {
+        state.starting[`FWD${i}`] = pickPlayer('FWD');
+      }
+
+      state.bench.BENCH_GK = pickPlayer('GK');
+      state.bench.BENCH_DEF = pickPlayer('DEF');
+      state.bench.BENCH_MID = pickPlayer('MID');
+      state.bench.BENCH_FWD = pickPlayer('FWD');
+
+      Object.keys(state.starting).forEach(s => renderSlot(s, state.starting[s]));
+      Object.keys(state.bench).forEach(s => renderSlot(s, state.bench[s]));
+
+      const candidateCapSlots = Object.keys(state.starting).filter(s => s.startsWith('FWD') || s.startsWith('MID'));
+      const capSlot = candidateCapSlots[Math.floor(Math.random() * candidateCapSlots.length)] || 'FWD1';
+      setCaptain(capSlot);
+
+      updateGameStats();
     }
 
     function setupDragAndDrop(slotEl, slot) {
@@ -597,6 +764,7 @@
         renderSlot(srcSlot, targetPlayer);
         renderSlot(slot, srcPlayer);
         updateGameStats();
+        saveCurrentState();
 
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
       };
@@ -604,6 +772,7 @@
 
     function renderSlot(slot, p) {
       const slotEl = document.getElementById(`slot-${slot}`);
+      if (!slotEl) return;
       setupDragAndDrop(slotEl, slot);
 
       if (!p) {
@@ -645,20 +814,17 @@
       const filledCount = Object.values(all).filter(Boolean).length;
       document.getElementById('draftProgressBadge').innerText = `${filledCount} / 15`;
 
-      // Лимит ЕАЭС в основе (11)
       const eaesStarting = getStartingEaesCount();
       const rfLabel = document.getElementById('rfLimitLabel');
       rfLabel.innerText = `${eaesStarting} / 4`;
       rfLabel.className = `font-bold ${eaesStarting >= 4 ? 'text-emerald-400' : 'text-red-400'}`;
 
-      // Лимит клуба
       const clubCounts = getClubCounts();
       const maxInClub = Math.max(0, ...Object.values(clubCounts));
       const clubLabel = document.getElementById('clubLimitLabel');
       clubLabel.innerText = `${maxInClub} / 3`;
       clubLabel.className = `font-bold ${maxInClub <= 3 ? 'text-emerald-400' : 'text-red-400'}`;
 
-      // Сыгранность стартовых 11
       const startingClubCounts = {};
       Object.values(state.starting).forEach(p => {
         if (p && p.club) startingClubCounts[p.club] = (startingClubCounts[p.club] || 0) + 1;
@@ -673,7 +839,6 @@
       document.getElementById('chemBonusValue').innerText = `+${chemPoints} очков`;
       document.getElementById('chemClustersBadge').innerText = `${triples} тройки (+${chemPoints})`;
 
-      // Кнопка завершения
       const finishBtn = document.getElementById('finishDraftBtn');
       if (filledCount === 15) {
         finishBtn.className = 'w-full py-3 bg-accentGreen hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 cursor-pointer';
@@ -740,14 +905,13 @@
       });
     }
 
-    // Эпичный ядерный взрыв
     function triggerNukeExplosion() {
+      AudioEngine.playNukeBoom();
       const flash = document.getElementById('nukeFlashLayer');
       const body = document.getElementById('appBody');
       const boomContainer = document.getElementById('boomTextContainer');
       const boomText = document.getElementById('boomText');
 
-      // 1. Тряска экрана + вспышка
       body.classList.add('shake-active');
       flash.classList.add('nuke-flash-active');
       boomContainer.classList.remove('hidden');
@@ -758,7 +922,6 @@
         setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 150);
       }
 
-      // 2. Мега-залп конфетти
       if (typeof confetti === 'function') {
         confetti({
           particleCount: 150,
@@ -782,7 +945,6 @@
         }, 200);
       }
 
-      // Очистка анимаций после завершения
       setTimeout(() => {
         body.classList.remove('shake-active');
         flash.classList.remove('nuke-flash-active');
@@ -796,30 +958,135 @@
       state.isDraftFinished = true;
       document.getElementById('captainModal').classList.add('hidden');
 
-      // Перерисовываем слоты с плашкой (C)
       Object.keys(state.starting).forEach(s => renderSlot(s, state.starting[s]));
 
       document.getElementById('finishDraftBtn').classList.add('hidden');
+      document.getElementById('autoFillBtn').classList.add('hidden');
       document.getElementById('shareBtn').classList.remove('hidden');
 
-      // Ядерный взрыв без назойливого alert()
+      saveCompletedSquadToHistory();
+      saveCurrentState();
       triggerNukeExplosion();
     }
 
-    function shareRoster() {
+    // ХРАНЕНИЕ И СИНХРОНИЗАЦИЯ (Telegram CloudStorage / localStorage)
+    function saveCurrentState() {
+      const dataToSave = JSON.stringify({
+        formation: state.formation,
+        starting: state.starting,
+        bench: state.bench,
+        captainSlot: state.captainSlot,
+        isDraftFinished: state.isDraftFinished
+      });
+
+      localStorage.setItem('rpl_current_draft', dataToSave);
+      if (tg?.CloudStorage) {
+        tg.CloudStorage.setItem('rpl_current_draft', dataToSave, () => {});
+      }
+    }
+
+    function loadSavedState() {
+      const restore = (raw) => {
+        if (!raw) {
+          buildFormationSlots('4-3-3');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          state.formation = parsed.formation || '4-3-3';
+          state.starting = parsed.starting || {};
+          state.bench = parsed.bench || state.bench;
+          state.captainSlot = parsed.captainSlot || null;
+          state.isDraftFinished = parsed.isDraftFinished || false;
+
+          buildFormationSlots(state.formation);
+
+          if (state.isDraftFinished) {
+            document.getElementById('finishDraftBtn').classList.add('hidden');
+            document.getElementById('autoFillBtn').classList.add('hidden');
+            document.getElementById('shareBtn').classList.remove('hidden');
+          }
+        } catch (e) {
+          buildFormationSlots('4-3-3');
+        }
+      };
+
+      if (tg?.CloudStorage) {
+        tg.CloudStorage.getItem('rpl_current_draft', (err, val) => {
+          if (!err && val) restore(val);
+          else restore(localStorage.getItem('rpl_current_draft'));
+        });
+      } else {
+        restore(localStorage.getItem('rpl_current_draft'));
+      }
+    }
+
+    function saveCompletedSquadToHistory() {
+      const history = JSON.parse(localStorage.getItem('rpl_tour_history') || '[]');
       const cap = state.starting[state.captainSlot];
       const chem = document.getElementById('chemBonusValue').innerText;
 
-      const text = `📋 МОЙ СОСТАВ РПЛ ФЭНТЕЗИ:\n` +
+      const record = {
+        date: new Date().toLocaleDateString('ru-RU'),
+        formation: state.formation,
+        captain: cap ? cap.name : 'Без капитана',
+        chem: chem,
+        points: 75 + Math.floor(Math.random() * 20)
+      };
+
+      history.unshift(record);
+      localStorage.setItem('rpl_tour_history', JSON.stringify(history.slice(0, 10)));
+    }
+
+    function openHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      const container = document.getElementById('historyListContainer');
+      const history = JSON.parse(localStorage.getItem('rpl_tour_history') || '[]');
+
+      if (history.length === 0) {
+        container.innerHTML = '<div class="text-center text-slate-500 py-4">Нет сохраненных туров</div>';
+      } else {
+        container.innerHTML = history.map((item, idx) => `
+          <div class="p-2 bg-slate-800 rounded-xl border border-slate-700 flex justify-between items-center">
+            <div>
+              <div class="font-bold text-white">Тур #${history.length - idx} • ${item.formation}</div>
+              <div class="text-[9px] text-slate-400">Капитан: ${item.captain} (${item.chem})</div>
+            </div>
+            <span class="font-black text-emerald-400">${item.points} pts</span>
+          </div>
+        `).join('');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('historyModal').classList.add('hidden');
+    }
+
+    function openLeaderboardModal() {
+      document.getElementById('leaderboardModal').classList.remove('hidden');
+    }
+
+    function closeLeaderboardModal() {
+      document.getElementById('leaderboardModal').classList.add('hidden');
+    }
+
+    function shareRoster() {
+      AudioEngine.playWhistle();
+      const cap = state.starting[state.captainSlot];
+      const chem = document.getElementById('chemBonusValue').innerText;
+
+      const startingNames = Object.entries(state.starting)
+        .filter(([_, p]) => p)
+        .map(([slot, p]) => `${p.name}${state.captainSlot === slot ? ' (C)' : ''}`)
+        .join(', ');
+
+      const text = `📋 МОЙ СОСТАВ РПЛ ФЭНТЕЗИ (${state.formation}):\n` +
         `👑 Капитан (C): ${cap ? cap.name + ' (' + cap.club + ')' : 'Не выбран'}\n` +
         `⚡ Сыгранность: ${chem}\n\n` +
-        `🟢 СТАРТ 11:\n` +
-        `🧤 ВРТ: ${state.starting.GK?.name}\n` +
-        `🛡️ ЗАЩ: ${state.starting.DEF1?.name}, ${state.starting.DEF2?.name}, ${state.starting.DEF3?.name}, ${state.starting.DEF4?.name}\n` +
-        `🎯 ПЗ: ${state.starting.MID1?.name}, ${state.starting.MID2?.name}, ${state.starting.MID3?.name}\n` +
-        `⚡ НАП: ${state.starting.FWD1?.name}, ${state.starting.FWD2?.name}, ${state.starting.FWD3?.name}\n\n` +
-        `🔵 ЗАПАС:\n` +
-        `${state.bench.BENCH_GK?.name}, ${state.bench.BENCH_DEF?.name}, ${state.bench.BENCH_MID?.name}, ${state.bench.BENCH_FWD?.name}`;
+        `🟢 СТАРТ 11: ${startingNames}\n\n` +
+        `🔵 ЗАПАС: ${state.bench.BENCH_GK?.name}, ${state.bench.BENCH_DEF?.name}, ${state.bench.BENCH_MID?.name}, ${state.bench.BENCH_FWD?.name}`;
 
       if (tg) {
         tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
@@ -828,6 +1095,8 @@
         alert('Состав скопирован в буфер обмена!');
       }
     }
+
+    initApp();
   </script>
 </body>
 </html>

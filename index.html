@@ -22,7 +22,6 @@
     }
   </script>
   <style>
-    /* Профессиональный газон с полосами и объемным светом */
     .pitch-bg {
       background: 
         repeating-linear-gradient(
@@ -89,10 +88,8 @@
 </head>
 <body id="appBody" class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-2 relative overflow-x-hidden">
 
-  <!-- Слой ядерной вспышки -->
   <div id="nukeFlashLayer" class="fixed inset-0 pointer-events-none z-50 opacity-0"></div>
 
-  <!-- Огромный текст BOOM, BITCH -->
   <div id="boomTextContainer" class="fixed inset-0 pointer-events-none z-50 flex items-center justify-center hidden">
     <div id="boomText" class="text-5xl font-black text-amber-400 tracking-tighter uppercase text-center leading-none px-4 drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] border-y-4 border-amber-400 bg-black/40 py-2">
       BOOM,<br /><span class="text-rose-500">BITCH.</span>
@@ -126,7 +123,7 @@
         <button onclick="openLeagueModal()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-[10px] rounded-lg border border-slate-700 transition">
           Лига
         </button>
-        <button onclick="autoFillSquad()" id="autoFillBtn" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase rounded-lg shadow-md active:scale-95 transition flex items-center gap-0.5 border border-indigo-400/40">
+        <button onclick="autoFillSquad()" id="autoFillBtn" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase rounded-lg shadow-md active:scale-95 transition flex items-center gap-0.5 border border-indigo-400/40">
           <span>⚡</span> Авто
         </button>
       </div>
@@ -145,44 +142,33 @@
       </div>
     </div>
 
-    <!-- Футбольное поле с полной профессиональной разметкой -->
+    <!-- Футбольное поле -->
     <main class="space-y-2">
       <div class="pitch-bg rounded-2xl p-2.5 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[390px]">
         
-        <!-- Линии поля (Абсолютное позиционирование) -->
-        <!-- Центральная линия и круг -->
         <div class="absolute inset-x-0 top-1/2 border-t-2 pitch-line-real pointer-events-none -translate-y-1/2"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-2 pitch-line-real rounded-full pointer-events-none"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white/50 rounded-full pointer-events-none"></div>
 
-        <!-- Верхняя штрафная, вратарская площадь и дуга -->
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-16 border-b-2 border-x-2 pitch-line-real pointer-events-none"></div>
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-7 border-b-2 border-x-2 pitch-line-real pointer-events-none"></div>
         <div class="absolute top-11 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/50 rounded-full pointer-events-none"></div>
         <div class="absolute top-16 left-1/2 -translate-x-1/2 w-16 h-8 border-b-2 pitch-line-real rounded-b-full pointer-events-none"></div>
 
-        <!-- Нижняя штрафная, вратарская площадь и дуга -->
         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-44 h-16 border-t-2 border-x-2 pitch-line-real pointer-events-none"></div>
         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-7 border-t-2 border-x-2 pitch-line-real pointer-events-none"></div>
         <div class="absolute bottom-11 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/50 rounded-full pointer-events-none"></div>
         <div class="absolute bottom-16 left-1/2 -translate-x-1/2 w-16 h-8 border-t-2 pitch-line-real rounded-t-full pointer-events-none"></div>
 
-        <!-- Угловые флаги/дуги -->
         <div class="absolute top-0 left-0 w-4 h-4 border-r-2 border-b-2 pitch-line-real rounded-br-full pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-4 h-4 border-l-2 border-b-2 pitch-line-real rounded-bl-full pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-4 h-4 border-r-2 border-t-2 pitch-line-real rounded-tr-full pointer-events-none"></div>
         <div class="absolute bottom-0 right-0 w-4 h-4 border-l-2 border-t-2 pitch-line-real rounded-tl-full pointer-events-none"></div>
 
-        <!-- 1. Нападающие -->
         <div id="fwdRowContainer" class="grid gap-1.5 z-10"></div>
-
-        <!-- 2. Полузащитники -->
         <div id="midRowContainer" class="grid gap-1.5 z-10 my-auto"></div>
-
-        <!-- 3. Защитники -->
         <div id="defRowContainer" class="grid gap-1 z-10"></div>
 
-        <!-- 4. Вратарь -->
         <div class="flex justify-center z-10">
           <div onclick="handleSlotClick('GK', 'GK')" id="slot-GK" class="slot-card w-28 p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ВРТ</span>
@@ -290,7 +276,7 @@
       </div>
     </div>
 
-    <!-- Модалка Лиг (Еженедельная + Френд Лига + Чаты) -->
+    <!-- Модалка Лиг и Настоящих Онлайн-Чатов -->
     <div id="leagueModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-sm space-y-3 flex flex-col max-h-[85vh]">
         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -322,14 +308,15 @@
             </div>
           </div>
 
+          <!-- Онлайн-Чат Тура -->
           <div class="border-t border-slate-800 pt-2 space-y-1.5">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Чат тура</span>
-            <div id="weeklyChatBox" class="h-28 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1 text-[11px] border border-slate-800">
-              <div class="text-slate-400"><b class="text-emerald-400">Александр:</b> Какого капитана берете?</div>
-              <div class="text-slate-400"><b class="text-sky-400">Максим:</b> У меня Глушенков на x2 залетает 🔥</div>
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-bold text-slate-400 uppercase">Чат тура (Live)</span>
+              <span class="text-[9px] text-emerald-400 flex items-center gap-1">● Онлайн</span>
             </div>
+            <div id="weeklyChatBox" class="h-32 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1.5 text-[11px] border border-slate-800"></div>
             <div class="flex gap-1">
-              <input type="text" id="weeklyChatInput" placeholder="Написать в чат..." class="flex-1 bg-slate-800 text-xs p-1.5 rounded-lg border border-slate-700 text-white focus:outline-none" />
+              <input type="text" id="weeklyChatInput" onkeypress="handleChatEnter(event, 'weekly')" placeholder="Написать в чат..." class="flex-1 bg-slate-800 text-xs p-1.5 rounded-lg border border-slate-700 text-white focus:outline-none focus:border-emerald-500" />
               <button onclick="sendChatMessage('weekly')" class="px-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-xs rounded-lg text-white">Отправить</button>
             </div>
           </div>
@@ -349,19 +336,14 @@
               <span class="font-bold text-white">1. Вы</span>
               <span class="font-black text-emerald-400">84 pts</span>
             </div>
-            <div class="p-2 bg-slate-800/40 rounded-xl flex justify-between items-center text-slate-400">
-              <span>2. Друг (Telegram)</span>
-              <span class="font-bold">69 pts</span>
-            </div>
           </div>
 
+          <!-- Чат Френд-Лиги -->
           <div class="border-t border-slate-800 pt-2 space-y-1.5">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Чат с друзьями</span>
-            <div id="friendsChatBox" class="h-28 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1 text-[11px] border border-slate-800">
-              <div class="text-slate-400"><b class="text-amber-400">Бот:</b> Пригласите друзей по кнопке выше, чтобы посоревноваться составами!</div>
-            </div>
+            <div id="friendsChatBox" class="h-32 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1.5 text-[11px] border border-slate-800"></div>
             <div class="flex gap-1">
-              <input type="text" id="friendsChatInput" placeholder="Написать друзьям..." class="flex-1 bg-slate-800 text-xs p-1.5 rounded-lg border border-slate-700 text-white focus:outline-none" />
+              <input type="text" id="friendsChatInput" onkeypress="handleChatEnter(event, 'friends')" placeholder="Написать друзьям..." class="flex-1 bg-slate-800 text-xs p-1.5 rounded-lg border border-slate-700 text-white focus:outline-none focus:border-indigo-500" />
               <button onclick="sendChatMessage('friends')" class="px-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-xs rounded-lg text-white">Отправить</button>
             </div>
           </div>
@@ -404,7 +386,7 @@
     </div>
   </div>
 
-  <!-- Футер: Кнопки завершения, экспорта и сброса -->
+  <!-- Футер -->
   <div class="pt-1 space-y-2">
     <button id="finishDraftBtn" onclick="finishDraftProcess()" class="w-full py-3 bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-not-allowed">
       Закончить выбор состава (0/15)
@@ -424,7 +406,15 @@
       tg.ready();
     }
 
-    // НАСТРОЙКИ ЗВУКА
+    // Имя Telegram-бота
+    const BOT_USERNAME = 'rpl_pickem_demo_bot';
+
+    const currentUser = {
+      name: tg?.initDataUnsafe?.user?.first_name || 'Игрок',
+      username: tg?.initDataUnsafe?.user?.username || 'user',
+      id: tg?.initDataUnsafe?.user?.id || Math.floor(Math.random() * 100000)
+    };
+
     let soundEnabled = localStorage.getItem('rpl_sound_enabled') !== 'false';
 
     const AudioEngine = {
@@ -627,6 +617,7 @@
         console.error('Ошибка загрузки players.json:', err);
       }
       loadSavedState();
+      initRealtimeChat();
     }
 
     function buildFormationSlots(fmt) {
@@ -789,7 +780,6 @@
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // РАНДОМИЗИРОВАННЫЙ АВТОСБОР
     function autoFillSquad() {
       if (state.isDraftFinished) return;
 
@@ -1231,6 +1221,7 @@
       document.getElementById('historyModal').classList.add('hidden');
     }
 
+    // ЛИГИ И РЕАЛЬНЫЙ ЧАТ
     function openLeagueModal() {
       document.getElementById('leagueModal').classList.remove('hidden');
     }
@@ -1258,31 +1249,75 @@
       }
     }
 
-    // ИНВАЙТ ДРУЗЕЙ В ТЕЛЕГРАМ
+    // ИНВАЙТ ДРУЗЕЙ В ТЕЛЕГРАМ БОТА
     function inviteTelegramFriends() {
-      const appUrl = 'https://pkw-fot.github.io/rpl-fantasy/';
+      const botUrl = `https://t.me/${BOT_USERNAME}?startapp=ref_${currentUser.id}`;
       const text = 'Заходи в игру! Присоединяйся к моей лиге РПЛ Фэнтези, собери состав и посоревнуйся со мной:';
-      const fullShareUrl = `https://t.me/share/url?url=${encodeURIComponent(appUrl)}&text=${encodeURIComponent(text)}`;
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(text)}`;
 
       if (tg) {
-        tg.openTelegramLink(fullShareUrl);
+        tg.openTelegramLink(shareUrl);
       } else {
-        window.open(fullShareUrl, '_blank');
+        window.open(shareUrl, '_blank');
       }
+    }
+
+    // РЕАЛЬНЫЙ СИНХРОНИЗИРОВАННЫЙ ОНЛАЙН ЧАТ ЧЕРЕЗ WEBSOCKET
+    let chatSocket = null;
+
+    function initRealtimeChat() {
+      try {
+        chatSocket = new WebSocket('wss://free.blr2.piesocket.com/v3/rpl_fantasy_live_chat?api_key=VCqPropertiesDemoKey');
+        
+        chatSocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            appendMessageToChat(data.type, data.user, data.text);
+          } catch(e) {}
+        };
+
+        chatSocket.onopen = () => {
+          appendMessageToChat('weekly', 'Система', 'Подключено к общему чату РПЛ!');
+          appendMessageToChat('friends', 'Система', 'Френд-чат активен.');
+        };
+      } catch(e) {
+        console.warn('Realtime chat fallback:', e);
+      }
+    }
+
+    function appendMessageToChat(type, user, text) {
+      const box = document.getElementById(type === 'weekly' ? 'weeklyChatBox' : 'friendsChatBox');
+      if (!box) return;
+
+      const isMe = user === currentUser.name;
+      const el = document.createElement('div');
+      el.className = 'text-slate-300 leading-tight';
+      el.innerHTML = `<b class="${isMe ? 'text-emerald-400' : 'text-sky-400'}">${user}:</b> <span>${text}</span>`;
+      box.appendChild(el);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function handleChatEnter(e, type) {
+      if (e.key === 'Enter') sendChatMessage(type);
     }
 
     function sendChatMessage(type) {
       const input = document.getElementById(type === 'weekly' ? 'weeklyChatInput' : 'friendsChatInput');
-      const box = document.getElementById(type === 'weekly' ? 'weeklyChatBox' : 'friendsChatBox');
       const msg = (input.value || '').trim();
-
       if (!msg) return;
 
-      const newMsgEl = document.createElement('div');
-      newMsgEl.className = 'text-slate-300';
-      newMsgEl.innerHTML = `<b class="text-emerald-400">Вы:</b> ${msg}`;
-      box.appendChild(newMsgEl);
-      box.scrollTop = box.scrollHeight;
+      const payload = {
+        type: type,
+        user: currentUser.name,
+        text: msg,
+        time: Date.now()
+      };
+
+      if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+        chatSocket.send(JSON.stringify(payload));
+      }
+
+      appendMessageToChat(type, currentUser.name, msg);
       input.value = '';
     }
 
@@ -1296,21 +1331,21 @@
         .map(([slot, p]) => `${p.name}${state.captainSlot === slot ? ' (C)' : ''}`)
         .join(', ');
 
-      const appUrl = 'https://pkw-fot.github.io/rpl-fantasy/';
+      const botUrl = `https://t.me/${BOT_USERNAME}?startapp=ref_${currentUser.id}`;
       const text = `📋 МОЙ СОСТАВ РПЛ ФЭНТЕЗИ (${state.formation}):\n` +
         `👑 Капитан (C): ${cap ? cap.name + ' (' + cap.club + ')' : 'Не выбран'}\n` +
         `⚡ Сыгранность: ${chem}\n\n` +
         `🟢 СТАРТ 11: ${startingNames}\n\n` +
         `🔵 ЗАПАС: ${state.bench.BENCH_GK?.name}, ${state.bench.BENCH_DEF?.name}, ${state.bench.BENCH_MID?.name}, ${state.bench.BENCH_FWD?.name}\n\n` +
-        `Собери команду и брось мне вызов: ${appUrl}`;
+        `Собери команду и брось мне вызов:`;
 
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(appUrl)}&text=${encodeURIComponent(text)}`;
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent(text)}`;
 
       if (tg) {
         tg.openTelegramLink(shareUrl);
       } else {
-        navigator.clipboard.writeText(text);
-        alert('Состав скопирован в буфер обмена!');
+        navigator.clipboard.writeText(text + ' ' + botUrl);
+        alert('Состав и инвайт скопированы в буфер обмена!');
       }
     }
 

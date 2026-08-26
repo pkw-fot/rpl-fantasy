@@ -1,60 +1,80 @@
 import requests
+from bs4 import BeautifulSoup
 import json
 import time
 
-BASE_URL = "https://transfermarkt-api.fly.dev"
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+}
 
-def fetch_and_save_all_rpl():
-    print("⏳ Запрашиваем актуальный список клубов РПЛ...")
+def parse_rpl_live():
+    print("⏳ Загружаем список клубов Премьер-Лиги напрямую...")
+    url = "https://www.transfermarkt.world/premier-liga/startseite/wettbewerb/RU1"
+    
+    db = {
+        "GK": [],
+        "LB": [],
+        "CB": [],
+        "RB": [],
+        "MID": [],
+        "FWD": []
+    }
+
     try:
-        comp_res = requests.get(f"{BASE_URL}/competitions/RU1/clubs", timeout=20)
-        clubs = comp_res.json().get("clubs", [])
-    except Exception as e:
-        print(f"Ошибка получения лиги: {e}")
-        return
-
-    db = {"GK": [], "LB": [], "CB": [], "RB": [], "MID": [], "FWD": []}
-
-    for club in clubs:
-        cid = club.get("id")
-        cname = club.get("name")
-        print(f"Парсинг: {cname}...")
+        res = requests.get(url, headers=HEADERS, timeout=20)
+        soup = BeautifulSoup(res.text, 'html.parser')
         
-        try:
-            p_res = requests.get(f"{BASE_URL}/clubs/{cid}/players", timeout=20)
-            players = p_res.json().get("players", [])
-            
-            for p in players:
-                name = p.get("name")
-                pos = p.get("position", "")
-                val = p.get("marketValue", "—")
+        club_links = []
+        for a in soup.select('table.items tbody tr td.hauptlink a'):
+            href = a.get('href', '')
+            if '/startseite/verein/' in href and href not in club_links:
+                club_links.append(href)
                 
-                item = {
-                    "name": name,
-                    "club": cname,
-                    "tier": "Основа" if val != "—" else "Ротация"
-                }
+        print(f"✅ Найдено клубов: {len(club_links)}")
 
-                if "Goalkeeper" in pos:
-                    db["GK"].append(item)
-                elif "Left-Back" in pos:
-                    db["LB"].append(item)
-                elif "Right-Back" in pos:
-                    db["RB"].append(item)
-                elif "Centre-Back" in pos or "Defender" in pos:
-                    db["CB"].append(item)
-                elif "Midfield" in pos or "Winger" in pos or "Left Winger" in pos or "Right Winger" in pos:
-                    db["MID"].append(item)
-                elif "Attack" in pos or "Striker" in pos or "Centre-Forward" in pos:
-                    db["FWD"].append(item)
+        for link in club_links:
+            club_url = f"https://www.transfermarkt.world{link}"
+            c_res = requests.get(club_url, headers=HEADERS, timeout=20)
+            c_soup = BeautifulSoup(c_res.text, 'html.parser')
+            
+            # Название клуба
+            club_header = c_soup.select_one('header.data-header h1')
+            club_name = club_header.get_text(strip=True) if club_header else "Клуб РПЛ"
+            print(f"-> Обработка: {club_name}...")
+
+            for row in c_soup.select('table.items tbody tr'):
+                name_el = row.select_one('td.hauptlink a')
+                pos_el = row.select_one('td:nth-child(2) table tr:nth-child(2) td')
+                
+                if name_el and pos_el:
+                    name = name_el.get_text(strip=True)
+                    pos = pos_el.get_text(strip=True)
                     
-            time.sleep(0.5)
-        except Exception as e:
-            print(f"Ошибка в клубе {cname}: {e}")
+                    item = {"name": name, "club": club_name, "tier": "Основа"}
 
+                    if "Вратарь" in pos:
+                        db["GK"].append(item)
+                    elif "Левый защитник" in pos:
+                        db["LB"].append(item)
+                    elif "Правый защитник" in pos:
+                        db["RB"].append(item)
+                    elif "Центральный защитник" in pos or "Защитник" in pos:
+                        db["CB"].append(item)
+                    elif "полузащитник" in pos.lower() or "опорный" in pos.lower() or "вингер" in pos.lower():
+                        db["MID"].append(item)
+                    elif "нападающий" in pos.lower() or "центрфорвард" in pos.lower():
+                        db["FWD"].append(item)
+
+            time.sleep(0.5)
+
+    except Exception as e:
+        print(f"Ошибка парсинга live: {e}")
+
+    # Запись в файл гарантированно выполняется
     with open("players.json", "w", encoding="utf-8") as f:
         json.dump(db, f, ensure_ascii=False, indent=2)
-    print("✅ players.json успешно обновлен!")
+
+    print(f"🎉 players.json успешно записан! Всего игроков: {sum(len(v) for v in db.values())}")
 
 if __name__ == "__main__":
-    fetch_and_save_all_rpl()
+    parse_rpl_live()

@@ -58,6 +58,16 @@
       box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
     }
 
+    /* Эффектные стили кнопок действий */
+    .btn-finish-ready {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+    .btn-share-ready {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
     @keyframes nukeFlash {
       0% { opacity: 0; }
       15% { opacity: 1; background: #ffffff; }
@@ -276,7 +286,7 @@
       </div>
     </div>
 
-    <!-- Модалка Лиг и Настоящих Онлайн-Чатов -->
+    <!-- Модалка Лиг и Чатов -->
     <div id="leagueModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl w-full max-w-sm space-y-3 flex flex-col max-h-[85vh]">
         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -291,7 +301,6 @@
           <button onclick="closeLeagueModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
         </div>
 
-        <!-- Контент Еженедельной Лиги -->
         <div id="weeklyLeagueContent" class="space-y-3 flex-1 overflow-y-auto">
           <div class="space-y-1 text-xs">
             <div class="p-2 bg-slate-800/90 rounded-xl border border-amber-500/40 flex justify-between items-center">
@@ -308,7 +317,6 @@
             </div>
           </div>
 
-          <!-- Онлайн-Чат Тура -->
           <div class="border-t border-slate-800 pt-2 space-y-1.5">
             <div class="flex justify-between items-center">
               <span class="text-[10px] font-bold text-slate-400 uppercase">Чат тура (Live)</span>
@@ -322,7 +330,6 @@
           </div>
         </div>
 
-        <!-- Контент Френд-Лиги -->
         <div id="friendsLeagueContent" class="hidden space-y-3 flex-1 overflow-y-auto">
           <div class="flex justify-between items-center">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Таблица друзей</span>
@@ -338,7 +345,6 @@
             </div>
           </div>
 
-          <!-- Чат Френд-Лиги -->
           <div class="border-t border-slate-800 pt-2 space-y-1.5">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Чат с друзьями</span>
             <div id="friendsChatBox" class="h-32 overflow-y-auto bg-slate-900 p-2 rounded-xl space-y-1.5 text-[11px] border border-slate-800"></div>
@@ -386,15 +392,20 @@
     </div>
   </div>
 
-  <!-- Футер -->
+  <!-- Футер: Обновленные премиальные кнопки -->
   <div class="pt-1 space-y-2">
-    <button id="finishDraftBtn" onclick="finishDraftProcess()" class="w-full py-3 bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-not-allowed">
+    <!-- Кнопка 1: Закончить выбор (видна до завершения) -->
+    <button id="finishDraftBtn" onclick="finishDraftProcess()" class="w-full py-3.5 bg-slate-800/80 border border-slate-700/60 text-slate-500 font-black text-xs uppercase tracking-wider rounded-2xl transition cursor-not-allowed">
       Закончить выбор состава (0/15)
     </button>
-    <button id="shareBtn" onclick="shareRoster()" class="hidden w-full py-3 bg-accentGreen text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center font-bold">
-      Поделиться составом
+    
+    <!-- Кнопка 2: Поделиться составом (видна после завершения) -->
+    <button id="shareBtn" onclick="shareRoster()" class="hidden w-full py-3.5 btn-share-ready text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl transition active:scale-95 flex items-center justify-center gap-1.5 border border-amber-300/40">
+      <span>🚀</span> Поделиться составом
     </button>
-    <button onclick="resetFullDraft()" class="w-full py-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/50 text-rose-300 font-bold text-[11px] uppercase tracking-wider rounded-xl transition active:scale-95">
+    
+    <!-- Кнопка 3: Сбросить состав -->
+    <button onclick="resetFullDraft()" class="w-full py-2 bg-transparent hover:bg-rose-950/20 border border-rose-900/40 text-rose-400/80 hover:text-rose-300 font-bold text-[10px] uppercase tracking-wider rounded-xl transition active:scale-95">
       Сбросить состав
     </button>
   </div>
@@ -406,7 +417,6 @@
       tg.ready();
     }
 
-    // Имя Telegram-бота
     const BOT_USERNAME = 'rpl_pickem_demo_bot';
 
     const currentUser = {
@@ -607,6 +617,13 @@
 
     function getStartingEaesCount() {
       return Object.values(state.starting).filter(p => p && EAES_COUNTRIES.includes(p.country)).length;
+    }
+
+    // ФУНКЦИЯ ПРАВИЛЬНОГО СКЛОНЕНИЯ СЛОВ
+    function pluralizeTriples(n) {
+      if (n === 1) return '1 тройка';
+      if (n >= 2 && n <= 4) return `${n} тройки`;
+      return `${n} троек`;
     }
 
     async function initApp() {
@@ -973,14 +990,16 @@
 
       const chemPoints = triples * 3;
       document.getElementById('chemBonusValue').innerText = `+${chemPoints} очков`;
-      document.getElementById('chemClustersBadge').innerText = `${triples} тройки (+${chemPoints})`;
+      
+      // Корректное склонение числительного
+      document.getElementById('chemClustersBadge').innerText = `${pluralizeTriples(triples)} (+${chemPoints})`;
 
       const finishBtn = document.getElementById('finishDraftBtn');
       if (filledCount === 15) {
-        finishBtn.className = 'w-full py-3 bg-accentGreen hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 cursor-pointer';
+        finishBtn.className = 'w-full py-3.5 btn-finish-ready text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl transition active:scale-95 cursor-pointer border border-emerald-300/40';
         finishBtn.innerText = 'Закончить выбор состава (15/15)';
       } else {
-        finishBtn.className = 'w-full py-3 bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-not-allowed';
+        finishBtn.className = 'w-full py-3.5 bg-slate-800/80 border border-slate-700/60 text-slate-500 font-black text-xs uppercase tracking-wider rounded-2xl transition cursor-not-allowed';
         finishBtn.innerText = `Закончить выбор состава (${filledCount}/15)`;
       }
     }
@@ -1221,7 +1240,6 @@
       document.getElementById('historyModal').classList.add('hidden');
     }
 
-    // ЛИГИ И РЕАЛЬНЫЙ ЧАТ
     function openLeagueModal() {
       document.getElementById('leagueModal').classList.remove('hidden');
     }
@@ -1249,7 +1267,6 @@
       }
     }
 
-    // ИНВАЙТ ДРУЗЕЙ В ТЕЛЕГРАМ БОТА
     function inviteTelegramFriends() {
       const botUrl = `https://t.me/${BOT_USERNAME}?startapp=ref_${currentUser.id}`;
       const text = 'Заходи в игру! Присоединяйся к моей лиге РПЛ Фэнтези, собери состав и посоревнуйся со мной:';
@@ -1262,7 +1279,6 @@
       }
     }
 
-    // РЕАЛЬНЫЙ СИНХРОНИЗИРОВАННЫЙ ОНЛАЙН ЧАТ ЧЕРЕЗ WEBSOCKET
     let chatSocket = null;
 
     function initRealtimeChat() {

@@ -15,7 +15,6 @@
             bgDark: '#080c14',
             cardDark: '#111827',
             accentGreen: '#10b981',
-            accentGold: '#f59e0b',
           }
         }
       }
@@ -34,59 +33,41 @@
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(4px);
+      user-select: none;
+      -webkit-user-select: none;
     }
-    .slot-highlight {
-      animation: slotPulse 1.2s infinite alternate;
+    .slot-drag-over {
       border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.2) !important;
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
-    }
-    .swap-source {
-      border-color: #f59e0b !important;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+      background: rgba(16, 185, 129, 0.3) !important;
       transform: scale(1.05);
     }
-    @keyframes slotPulse {
-      0% { transform: scale(1); }
-      100% { transform: scale(1.05); }
-    }
     .card-anim {
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
     }
   </style>
 </head>
-<body class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-3">
+<body class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-2">
 
-  <div class="space-y-3">
+  <div class="space-y-2">
     <!-- Шапка -->
     <header class="flex items-center justify-between border-b border-slate-800 pb-2">
       <div>
         <h1 class="text-xs font-black tracking-wide text-white uppercase">
-          РПЛ: ТРАНСФЕРНЫЙ ДРАФТ
+          РПЛ: ДРАФТ СОСТАВА
         </h1>
-        <p class="text-[10px] text-slate-400">11 основы + 4 скамейка</p>
+        <p class="text-[10px] text-slate-400">Нажмите на слот, чтобы открыть пак</p>
       </div>
-      <div id="draftProgressBadge" class="bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
+      <div id="draftProgressBadge" class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-[11px] font-bold text-accentGreen">
         0 / 15
       </div>
     </header>
 
-    <!-- Виджет «Трансферный Пак» -->
-    <section class="p-3 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden">
-      <div class="space-y-0.5 z-10">
-        <div class="text-xs font-black text-white tracking-wider uppercase">ТРАНСФЕРНЫЙ ПАК</div>
-        <p id="packStatusLabel" class="text-[10px] text-slate-400">Доступны 3 кандидата с флагами стран</p>
-      </div>
-      <button onclick="triggerDraftPack()" id="openPackBtn" class="z-10 px-4 py-2 bg-accentGreen hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg active:scale-95 transition">
-        Открыть
-      </button>
-    </section>
-
-    <!-- Информационная плашка правил / выбора -->
-    <div id="statusBanner" class="p-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-[11px]">
+    <!-- Информационная плашка правил / лимитов -->
+    <div class="p-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-[11px]">
       <div class="flex items-center gap-1.5">
-        <span class="text-slate-400">Лимит РФ:</span>
+        <span class="text-slate-400">Лимит ЕАЭС/РФ:</span>
         <span id="rfLimitLabel" class="font-bold text-red-400">0 / 4</span>
+        <button onclick="toggleLimitInfo()" class="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 text-[9px] font-bold flex items-center justify-center text-slate-300 hover:text-white">?</button>
       </div>
       <div class="flex items-center gap-1.5">
         <span class="text-slate-400">Макс. из клуба:</span>
@@ -94,129 +75,150 @@
       </div>
     </div>
 
-    <!-- Футбольное поле (Стартовый состав 11) -->
-    <main class="space-y-3">
-      <div class="pitch-bg rounded-2xl p-2.5 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[390px] border border-emerald-900/60">
+    <!-- Футбольное поле (11 основы) -->
+    <main class="space-y-2">
+      <div class="pitch-bg rounded-2xl p-2 shadow-2xl relative overflow-hidden flex flex-col justify-between h-[370px] border border-emerald-900/60">
         
-        <!-- Разметка поля -->
         <div class="absolute inset-x-0 top-1/2 border-t pitch-line pointer-events-none"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border pitch-line rounded-full pointer-events-none"></div>
 
         <!-- Нападающие (3) -->
         <div class="grid grid-cols-3 gap-1.5 z-10">
-          <button onclick="handleSlotInteraction('FWD1', 'FWD', false)" id="slot-FWD1" class="slot-card p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          <div onclick="handleSlotClick('FWD1', 'FWD')" id="slot-FWD1" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
-            <div id="val-FWD1" class="text-[10px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-FWD1" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-FWD1" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
-          <button onclick="handleSlotInteraction('FWD2', 'FWD', false)" id="slot-FWD2" class="slot-card p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('FWD2', 'FWD')" id="slot-FWD2" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
-            <div id="val-FWD2" class="text-[10px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-FWD2" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-FWD2" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
-          <button onclick="handleSlotInteraction('FWD3', 'FWD', false)" id="slot-FWD3" class="slot-card p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('FWD3', 'FWD')" id="slot-FWD3" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">НАП</span>
-            <div id="val-FWD3" class="text-[10px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-FWD3" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-FWD3" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
+          </div>
         </div>
 
         <!-- Полузащитники (3) -->
         <div class="grid grid-cols-3 gap-1.5 z-10 my-auto">
-          <button onclick="handleSlotInteraction('MID1', 'MID', false)" id="slot-MID1" class="slot-card p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          <div onclick="handleSlotClick('MID1', 'MID')" id="slot-MID1" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
-            <div id="val-MID1" class="text-[10px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-MID1" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-MID1" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
-          <button onclick="handleSlotInteraction('MID2', 'MID', false)" id="slot-MID2" class="slot-card p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('MID2', 'MID')" id="slot-MID2" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
-            <div id="val-MID2" class="text-[10px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-MID2" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-MID2" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
-          <button onclick="handleSlotInteraction('MID3', 'MID', false)" id="slot-MID3" class="slot-card p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('MID3', 'MID')" id="slot-MID3" class="slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ПЗ</span>
-            <div id="val-MID3" class="text-[10px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-MID3" class="text-[10px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-MID3" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
+          </div>
         </div>
 
         <!-- Защитники (4) -->
         <div class="grid grid-cols-4 gap-1 z-10">
-          <button onclick="handleSlotInteraction('DEF1', 'DEF', false)" id="slot-DEF1" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95 relative">
+          <div onclick="handleSlotClick('DEF1', 'DEF')" id="slot-DEF1" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
             <div id="val-DEF1" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-DEF1" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
-          <button onclick="handleSlotInteraction('DEF2', 'DEF', false)" id="slot-DEF2" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('DEF2', 'DEF')" id="slot-DEF2" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
             <div id="val-DEF2" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-DEF2" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
-          <button onclick="handleSlotInteraction('DEF3', 'DEF', false)" id="slot-DEF3" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('DEF3', 'DEF')" id="slot-DEF3" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
             <div id="val-DEF3" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-DEF3" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
-          <button onclick="handleSlotInteraction('DEF4', 'DEF', false)" id="slot-DEF4" class="slot-card p-1 border border-slate-700 rounded-lg text-center active:scale-95 relative">
+          </div>
+          <div onclick="handleSlotClick('DEF4', 'DEF')" id="slot-DEF4" class="slot-card p-1 border border-slate-700 rounded-lg text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ЗАЩ</span>
             <div id="val-DEF4" class="text-[9px] font-bold text-white truncate">+ Выбор</div>
             <div id="club-DEF4" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
+          </div>
         </div>
 
         <!-- Вратарь (1) -->
         <div class="flex justify-center z-10">
-          <button onclick="handleSlotInteraction('GK', 'GK', false)" id="slot-GK" class="slot-card w-28 p-1 border border-slate-700 rounded-xl text-center active:scale-95 relative">
+          <div onclick="handleSlotClick('GK', 'GK')" id="slot-GK" class="slot-card w-28 p-1 border border-slate-700 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-slate-400 font-bold uppercase block">ВРТ</span>
             <div id="val-GK" class="text-[10px] font-bold text-white truncate">+ Вратарь</div>
             <div id="club-GK" class="text-[8px] text-slate-500 truncate">Свободно</div>
-          </button>
+          </div>
         </div>
 
       </div>
 
-      <!-- Скамейка запасных (4 слота) -->
+      <!-- Скамейка запасных (4) -->
       <div class="p-2.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-1.5">
         <div class="flex justify-between items-center px-1">
           <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">СКАМЕЙКА ЗАПАСНЫХ</span>
-          <span class="text-[9px] text-slate-500">Кликните двух игроков одной позиции для рокировки</span>
+          <span class="text-[9px] text-slate-500">Перетащите для замены с основой</span>
         </div>
         <div class="grid grid-cols-4 gap-1.5">
-          <button onclick="handleSlotInteraction('BENCH_GK', 'GK', true)" id="slot-BENCH_GK" class="slot-card p-1 border border-slate-800 rounded-xl text-center active:scale-95">
+          <div onclick="handleSlotClick('BENCH_GK', 'GK')" id="slot-BENCH_GK" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-purple-400 font-bold uppercase block">Зап. ВРТ</span>
-            <div id="val-BENCH_GK" class="text-[9px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-BENCH_GK" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-BENCH_GK" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
-          <button onclick="handleSlotInteraction('BENCH_DEF', 'DEF', true)" id="slot-BENCH_DEF" class="slot-card p-1 border border-slate-800 rounded-xl text-center active:scale-95">
+          </div>
+          <div onclick="handleSlotClick('BENCH_DEF', 'DEF')" id="slot-BENCH_DEF" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-blue-400 font-bold uppercase block">Зап. ЗАЩ</span>
-            <div id="val-BENCH_DEF" class="text-[9px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-BENCH_DEF" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-BENCH_DEF" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
-          <button onclick="handleSlotInteraction('BENCH_MID', 'MID', true)" id="slot-BENCH_MID" class="slot-card p-1 border border-slate-800 rounded-xl text-center active:scale-95">
+          </div>
+          <div onclick="handleSlotClick('BENCH_MID', 'MID')" id="slot-BENCH_MID" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-amber-400 font-bold uppercase block">Зап. ПЗ</span>
-            <div id="val-BENCH_MID" class="text-[9px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-BENCH_MID" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-BENCH_MID" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
-          <button onclick="handleSlotInteraction('BENCH_FWD', 'FWD', true)" id="slot-BENCH_FWD" class="slot-card p-1 border border-slate-800 rounded-xl text-center active:scale-95">
+          </div>
+          <div onclick="handleSlotClick('BENCH_FWD', 'FWD')" id="slot-BENCH_FWD" class="slot-card p-1 border border-slate-800 rounded-xl text-center cursor-pointer">
             <span class="text-[8px] text-emerald-400 font-bold uppercase block">Зап. НАП</span>
-            <div id="val-BENCH_FWD" class="text-[9px] font-bold text-white truncate">+ Слот</div>
+            <div id="val-BENCH_FWD" class="text-[9px] font-bold text-white truncate">+ Выбрать</div>
             <div id="club-BENCH_FWD" class="text-[8px] text-slate-500 truncate">-</div>
-          </button>
+          </div>
         </div>
       </div>
 
       <!-- Бонус сыгранности -->
-      <div class="p-3 bg-gradient-to-r from-slate-900 via-emerald-950/30 to-slate-900 border border-emerald-500/30 rounded-2xl flex items-center justify-between">
+      <div class="p-2.5 bg-gradient-to-r from-slate-900 via-emerald-950/30 to-slate-900 border border-emerald-500/30 rounded-2xl flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-xs font-black text-white">Бонус сыгранности:</span>
           <span id="chemBonusValue" class="text-xs font-black text-accentGreen px-2 py-0.5 bg-emerald-950 border border-emerald-500/40 rounded-lg">0 очков</span>
-          <button onclick="toggleChemInfo()" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-600 text-[10px] font-bold flex items-center justify-center text-slate-300 hover:text-white" title="Справка по сыгранности">?</button>
+          <button onclick="toggleChemInfo()" class="w-4 h-4 rounded-full bg-slate-800 border border-slate-600 text-[10px] font-bold flex items-center justify-center text-slate-300 hover:text-white">?</button>
         </div>
         <div id="chemClustersBadge" class="text-[10px] font-bold text-slate-400">0 троек</div>
       </div>
     </main>
 
-    <!-- Модалка справки по сыгранности -->
+    <!-- Справка по лимиту легионеров -->
+    <div id="limitInfoModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl max-w-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-black text-white uppercase">Лимит легионеров РПЛ</h3>
+          <button onclick="toggleLimitInfo()" class="text-slate-400 hover:text-white text-sm">✕</button>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          В заявке команды из 15 игроков должно быть минимум <b>4 игрока, не являющихся легионерами</b>.
+        </p>
+        <div class="text-[10px] bg-slate-800/80 p-2 rounded-xl text-slate-300 space-y-1 border border-slate-700">
+          <div class="font-bold text-emerald-400">Не считаются легионерами граждане стран ЕАЭС:</div>
+          <div>• Россия [RUS]</div>
+          <div>• Беларусь [BLR]</div>
+          <div>• Казахстан [KAZ]</div>
+          <div>• Армения [ARM]</div>
+          <div>• Кыргызстан [KGZ]</div>
+        </div>
+        <button onclick="toggleLimitInfo()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Понятно</button>
+      </div>
+    </div>
+
+    <!-- Справка по сыгранности -->
     <div id="chemInfoModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div class="bg-cardDark border border-slate-700 p-4 rounded-2xl max-w-xs space-y-3">
         <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -224,23 +226,23 @@
           <button onclick="toggleChemInfo()" class="text-slate-400 hover:text-white text-sm">✕</button>
         </div>
         <p class="text-[11px] text-slate-300 leading-relaxed">
-          Каждая тройка игроков из одного клуба в <b>стартовом составе (11)</b> дает <b>+3 бонусных очка</b> к общему рейтингу тура.
+          Каждая тройка игроков из одного клуба в <b>стартовом составе (11)</b> дает <b>+3 бонусных очка</b>.
         </p>
         <p class="text-[10px] text-slate-400 leading-normal">
-          Максимум можно собрать 3 клубные тройки (9 очков). Игроки на скамейке запасных в расчете сыгранности не участвуют.
+          Максимум можно собрать 3 тройки (9 очков). Скамейка запасных в расчете сыгранности не учитывается.
         </p>
         <button onclick="toggleChemInfo()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl">Понятно</button>
       </div>
     </div>
 
-    <!-- Модалка вскрытия пака -->
+    <!-- Модалка пака позиции -->
     <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
-      <div class="text-center space-y-1 mb-6">
-        <div id="modalPackRole" class="text-xs font-black text-slate-400 uppercase tracking-widest">ВЫБОР КАНДИДАТА</div>
+      <div class="text-center space-y-1 mb-5">
+        <div id="modalPackRole" class="text-xs font-black text-slate-400 uppercase tracking-widest">ПАК АМПЛУА</div>
         <h2 class="text-base font-black text-white uppercase">Выберите 1 игрока</h2>
-        <p class="text-[11px] text-slate-400">Кликните по карточке для распределения</p>
+        <p class="text-[11px] text-slate-400">Игрок займет выбранную позицию</p>
       </div>
-      <div id="packCardsContainer" class="flex justify-center gap-2.5 w-full max-w-sm"></div>
+      <div id="packCardsContainer" class="flex justify-center gap-2 w-full max-w-sm"></div>
     </div>
 
     <!-- Модалка выбора капитана -->
@@ -248,18 +250,18 @@
       <div class="text-center space-y-1 mb-4">
         <div class="text-[10px] font-black text-amber-400 uppercase tracking-widest animate-pulse">ДРАФТ ЗАВЕРШЕН</div>
         <h2 class="text-sm font-black text-white uppercase">Назначьте капитана команды (C)</h2>
-        <p class="text-[10px] text-slate-400">Капитаном может быть только игрок стартовых 11. Очки капитана удваиваются (x2).</p>
+        <p class="text-[10px] text-slate-400">Очки капитана удваиваются (x2). Доступны только игроки старта.</p>
       </div>
       <div id="captainListContainer" class="max-h-64 overflow-y-auto w-full max-w-xs space-y-1.5 p-1"></div>
     </div>
   </div>
 
-  <!-- Футер: Кнопки действий -->
-  <div class="pt-2 space-y-2">
+  <!-- Футер -->
+  <div class="pt-1 space-y-2">
     <button id="finishDraftBtn" onclick="finishDraftProcess()" class="w-full py-3 bg-slate-800 text-slate-500 font-black text-xs uppercase tracking-wider rounded-xl transition cursor-not-allowed">
       Закончить выбор состава (0/15)
     </button>
-    <button id="shareBtn" onclick="shareRoster()" class="hidden w-full py-3 bg-accentGreen text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5">
+    <button id="shareBtn" onclick="shareRoster()" class="hidden w-full py-3 bg-accentGreen text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center">
       Поделиться составом
     </button>
   </div>
@@ -271,53 +273,23 @@
       tg.ready();
     }
 
-    const COUNTRY_FLAGS = {
-      'Россия': '🇷🇺',
-      'Бразилия': '🇧🇷',
-      'Аргентина': '🇦🇷',
-      'Сербия': '🇷🇸',
-      'Франция': '🇫🇷',
-      'Колумбия': '🇨🇴',
-      'Беларусь': '🇧🇾',
-      'Казахстан': '🇰🇿',
-      'Албания': '🇦🇱',
-      'Нигерия': '🇳🇬',
-      'Уругвай': '🇺🇾',
-      'Парагвай': '🇵🇾',
-      'Боливия': '🇧🇴',
-      'Чили': '🇨🇱',
-      'Португалия': '🇵🇹',
-      'Испания': '🇪🇸',
-      'Италия': '🇮🇹',
-      'Словения': '🇸🇮',
-      'Хорватия': '🇭🇷',
-      'Босния и Герцеговина': '🇧🇦',
-      'Марокко': '🇲🇦',
-      'Алжир': '🇩🇿',
-      'Ангола': '🇦🇴',
-      'Кот-д`Ивуар': '🇨🇮',
-      'Сенегал': '🇸🇳',
-      'Гондурас': '🇭🇳',
-      'Панама': '🇵🇦',
-      'Коста-Рика': '🇨🇷',
-      'Мексика': '🇲🇽',
-      'Иран': '🇮🇷',
-      'Узбекистан': '🇺🇿',
-      'Туркменистан': '🇹🇲',
-      'Армения': '🇦🇲',
-      'Люксембург': '🇱🇺',
-      'Кабо-Верде': '🇨🇻',
-      'Черногория': '🇲🇪',
-      'Перу': '🇵🇪',
-      'Гвинея': '🇬🇳',
-      'Тунис': '🇹🇳',
-      'Румыния': '🇷🇴',
-      'Австрия': '🇦🇹',
-      'Болгария': '🇧🇬'
+    // Буквенные коды стран вместо эмодзи
+    const COUNTRY_CODES = {
+      'Россия': 'RUS', 'Беларусь': 'BLR', 'Казахстан': 'KAZ', 'Армения': 'ARM', 'Кыргызстан': 'KGZ',
+      'Бразилия': 'BRA', 'Аргентина': 'ARG', 'Сербия': 'SRB', 'Франция': 'FRA', 'Колумбия': 'COL',
+      'Албания': 'ALB', 'Нигерия': 'NGA', 'Уругвай': 'URU', 'Парагвай': 'PAR', 'Боливия': 'BOL',
+      'Чили': 'CHI', 'Португалия': 'POR', 'Испания': 'ESP', 'Италия': 'ITA', 'Словения': 'SVN',
+      'Хорватия': 'CRO', 'Босния и Герцеговина': 'BIH', 'Марокко': 'MAR', 'Алжир': 'ALG', 'Ангола': 'ANG',
+      'Кот-д`Ивуар': 'CIV', 'Сенегал': 'SEN', 'Гондурас': 'HON', 'Панама': 'PAN', 'Коста-Рика': 'CRC',
+      'Мексика': 'MEX', 'Иран': 'IRN', 'Узбекистан': 'UZB', 'Туркменистан': 'TKM', 'Люксембург': 'LUX',
+      'Кабо-Верде': 'CPV', 'Черногория': 'MNE', 'Перу': 'PER', 'Гвинея': 'GUI', 'Тунис': 'TUN',
+      'Румыния': 'ROU', 'Австрия': 'AUT', 'Болгария': 'BUL'
     };
 
-    function getFlag(country) {
-      return COUNTRY_FLAGS[country] || '🌐';
+    const EAES_COUNTRIES = ['Россия', 'Беларусь', 'Казахстан', 'Армения', 'Кыргызстан'];
+
+    function getCountryCode(country) {
+      return COUNTRY_CODES[country] || 'INT';
     }
 
     const CLUB_THEMES = {
@@ -358,23 +330,21 @@
     initPlayers();
 
     const state = {
-      // 11 основных слотов
       starting: {
         FWD1: null, FWD2: null, FWD3: null,
         MID1: null, MID2: null, MID3: null,
         DEF1: null, DEF2: null, DEF3: null, DEF4: null,
         GK: null
       },
-      // 4 слота скамейки
       bench: {
         BENCH_GK: null,
         BENCH_DEF: null,
         BENCH_MID: null,
         BENCH_FWD: null
       },
-      selectedPlayerFromPack: null,
-      currentPackRole: null,
-      swapSourceSlot: null,
+      activeTargetSlot: null,
+      activeTargetRole: null,
+      draggedSlot: null,
       captainSlot: null,
       isDraftFinished: false
     };
@@ -386,6 +356,14 @@
       FWD: 'НАПАДАЮЩИЕ'
     };
 
+    function getRoleFromSlot(slot) {
+      if (slot.includes('GK')) return 'GK';
+      if (slot.includes('DEF')) return 'DEF';
+      if (slot.includes('MID')) return 'MID';
+      if (slot.includes('FWD')) return 'FWD';
+      return null;
+    }
+
     function getAllSlots() {
       return { ...state.starting, ...state.bench };
     }
@@ -393,70 +371,40 @@
     function getClubCounts() {
       const counts = {};
       Object.values(getAllSlots()).forEach(p => {
-        if (p && p.club) {
-          counts[p.club] = (counts[p.club] || 0) + 1;
-        }
+        if (p && p.club) counts[p.club] = (counts[p.club] || 0) + 1;
       });
       return counts;
     }
 
-    function getRfCount() {
-      return Object.values(getAllSlots()).filter(p => p && p.country === 'Россия').length;
+    // Игроки из стран ЕАЭС не считаются легионерами
+    function getEaesCount() {
+      return Object.values(getAllSlots()).filter(p => p && EAES_COUNTRIES.includes(p.country)).length;
     }
 
-    function getAvailableRoles() {
-      const freeRoles = new Set();
-      // Проверяем основу
-      Object.keys(state.starting).forEach(slot => {
-        if (!state.starting[slot]) {
-          if (slot.startsWith('FWD')) freeRoles.add('FWD');
-          if (slot.startsWith('MID')) freeRoles.add('MID');
-          if (slot.startsWith('DEF')) freeRoles.add('DEF');
-          if (slot === 'GK') freeRoles.add('GK');
-        }
-      });
-      // Проверяем скамейку
-      Object.keys(state.bench).forEach(slot => {
-        if (!state.bench[slot]) {
-          if (slot.includes('FWD')) freeRoles.add('FWD');
-          if (slot.includes('MID')) freeRoles.add('MID');
-          if (slot.includes('DEF')) freeRoles.add('DEF');
-          if (slot.includes('GK')) freeRoles.add('GK');
-        }
-      });
-      return Array.from(freeRoles);
-    }
-
-    function triggerDraftPack() {
+    function handleSlotClick(slot, role) {
       if (state.isDraftFinished) return;
 
-      const availableRoles = getAvailableRoles();
-      if (availableRoles.length === 0) {
-        alert('Все 15 слотов уже укомплектованы!');
-        return;
-      }
+      const current = slot.startsWith('BENCH_') ? state.bench[slot] : state.starting[slot];
+      if (current) return; // Если игрок уже есть, слот доступен для драг-н-дропа
 
-      const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
-      state.currentPackRole = randomRole;
+      state.activeTargetSlot = slot;
+      state.activeTargetRole = role;
 
       const clubCounts = getClubCounts();
       const allSelectedNames = Object.values(getAllSlots()).filter(Boolean).map(p => p.name);
 
-      // Фильтруем кандидатов: лимит 3 игрока из одного клуба и без повторов
-      let candidates = (rplDatabase[randomRole] || []).filter(p => {
+      let candidates = (rplDatabase[role] || []).filter(p => {
         if (allSelectedNames.includes(p.name)) return false;
         if ((clubCounts[p.club] || 0) >= 3) return false;
         return true;
       });
 
-      if (candidates.length < 3) {
-        candidates = rplDatabase[randomRole] || [];
-      }
+      if (candidates.length < 3) candidates = rplDatabase[role] || [];
 
       const shuffled = [...candidates].sort(() => 0.5 - Math.random());
       const selectedThree = shuffled.slice(0, 3);
 
-      showPackModal(selectedThree, randomRole);
+      showPackModal(selectedThree, role);
     }
 
     function showPackModal(cards, roleKey) {
@@ -472,15 +420,15 @@
 
       cards.forEach((card, index) => {
         const theme = getClubTheme(card.club);
-        const flag = getFlag(card.country);
+        const code = getCountryCode(card.country);
         const cardEl = document.createElement('div');
         
-        cardEl.className = `card-anim opacity-0 scale-75 flex-1 p-2.5 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-48 cursor-pointer active:scale-95 transition-all`;
+        cardEl.className = `card-anim opacity-0 scale-75 flex-1 p-2.5 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-44 cursor-pointer active:scale-95 transition-all`;
         
         cardEl.innerHTML = `
           <div>
             <div class="flex justify-between items-center px-1">
-              <span class="text-sm">${flag}</span>
+              <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-700 text-slate-300">[${code}]</span>
               <span class="text-[8px] font-bold text-slate-400 truncate max-w-[50px]">${card.country}</span>
             </div>
             <span class="text-[9px] font-black ${theme.text} uppercase tracking-wide block truncate mt-1">${card.club}</span>
@@ -499,132 +447,108 @@
         setTimeout(() => {
           cardEl.classList.remove('opacity-0', 'scale-75');
           cardEl.classList.add('opacity-100', 'scale-100');
-        }, index * 120);
+        }, index * 100);
       });
     }
 
     function selectCardFromPack(card) {
-      state.selectedPlayerFromPack = card;
-      document.getElementById('packModal').classList.add('hidden');
-
-      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-
-      highlightTargetSlots(state.currentPackRole);
-    }
-
-    function highlightTargetSlots(role) {
-      clearHighlights();
-      // Подсветка основы
-      Object.keys(state.starting).forEach(slot => {
-        if (slot.startsWith(role) && !state.starting[slot]) {
-          document.getElementById(`slot-${slot}`).classList.add('slot-highlight');
-        }
-      });
-      // Подсветка скамейки
-      Object.keys(state.bench).forEach(slot => {
-        if (slot.includes(role) && !state.bench[slot]) {
-          document.getElementById(`slot-${slot}`).classList.add('slot-highlight');
-        }
-      });
-    }
-
-    function clearHighlights() {
-      document.querySelectorAll('.slot-card').forEach(el => {
-        el.classList.remove('slot-highlight', 'swap-source');
-      });
-    }
-
-    // Обработка клика по слоту (распределение из пака или рокировка между основой и скамейкой)
-    function handleSlotInteraction(slot, role, isBench) {
-      // 1. Установка из пака
-      if (state.selectedPlayerFromPack) {
-        if (state.currentPackRole !== role) {
-          alert(`Этот игрок амплуа ${ROLE_LABELS[state.currentPackRole]}, его нельзя поставить в слот ${ROLE_LABELS[role]}!`);
-          return;
-        }
-
-        const p = state.selectedPlayerFromPack;
-        if (isBench) {
-          state.bench[slot] = p;
-        } else {
-          state.starting[slot] = p;
-        }
-
-        renderSlot(slot, p);
-        state.selectedPlayerFromPack = null;
-        clearHighlights();
-        updateGameStats();
-        return;
+      const slot = state.activeTargetSlot;
+      if (slot.startsWith('BENCH_')) {
+        state.bench[slot] = card;
+      } else {
+        state.starting[slot] = card;
       }
 
-      // 2. Механика перемещения/рокировки внутри одной позиции (например, FWD1 <-> BENCH_FWD)
-      if (!state.swapSourceSlot) {
-        const playerInSlot = isBench ? state.bench[slot] : state.starting[slot];
-        if (!playerInSlot) return;
+      document.getElementById('packModal').classList.add('hidden');
+      renderSlot(slot, card);
+      updateGameStats();
 
-        state.swapSourceSlot = { slot, role, isBench, player: playerInSlot };
-        document.getElementById(`slot-${slot}`).classList.add('swap-source');
-      } else {
-        const src = state.swapSourceSlot;
-        
-        if (src.slot === slot) {
-          // Клик по тому же слоту снимает выделение
-          clearHighlights();
-          state.swapSourceSlot = null;
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    }
+
+    // Настройка Drag and Drop
+    function setupDragAndDrop(slotEl, slot) {
+      slotEl.draggable = true;
+
+      slotEl.ondragstart = (e) => {
+        const p = slot.startsWith('BENCH_') ? state.bench[slot] : state.starting[slot];
+        if (!p || state.isDraftFinished) {
+          e.preventDefault();
+          return;
+        }
+        state.draggedSlot = slot;
+        e.dataTransfer.setData('text/plain', slot);
+      };
+
+      slotEl.ondragover = (e) => {
+        e.preventDefault();
+        const srcSlot = state.draggedSlot;
+        if (srcSlot && getRoleFromSlot(srcSlot) === getRoleFromSlot(slot)) {
+          slotEl.classList.add('slot-drag-over');
+        }
+      };
+
+      slotEl.ondragleave = () => {
+        slotEl.classList.remove('slot-drag-over');
+      };
+
+      slotEl.ondrop = (e) => {
+        e.preventDefault();
+        slotEl.classList.remove('slot-drag-over');
+        const srcSlot = state.draggedSlot;
+        if (!srcSlot || srcSlot === slot) return;
+
+        if (getRoleFromSlot(srcSlot) !== getRoleFromSlot(slot)) {
+          alert('Перемещение возможно только между игроками одного амплуа!');
           return;
         }
 
-        if (src.role !== role) {
-          alert(`Рокировка возможна только между игроками одной позиции (${ROLE_LABELS[src.role]})!`);
-          clearHighlights();
-          state.swapSourceSlot = null;
-          return;
-        }
+        // Обмен местами
+        const srcIsBench = srcSlot.startsWith('BENCH_');
+        const targetIsBench = slot.startsWith('BENCH_');
 
-        // Производим обмен
-        const targetPlayer = isBench ? state.bench[slot] : state.starting[slot];
+        const srcPlayer = srcIsBench ? state.bench[srcSlot] : state.starting[srcSlot];
+        const targetPlayer = targetIsBench ? state.bench[slot] : state.starting[slot];
 
-        if (src.isBench) state.bench[src.slot] = targetPlayer;
-        else state.starting[src.slot] = targetPlayer;
+        if (srcIsBench) state.bench[srcSlot] = targetPlayer;
+        else state.starting[srcSlot] = targetPlayer;
 
-        if (isBench) state.bench[slot] = src.player;
-        else state.starting[slot] = src.player;
+        if (targetIsBench) state.bench[slot] = srcPlayer;
+        else state.starting[slot] = srcPlayer;
 
-        // Если переместили капитана на банку — сбрасываем
-        if (state.captainSlot === src.slot && isBench) {
+        if (state.captainSlot === srcSlot && targetIsBench) {
           state.captainSlot = slot;
         }
 
-        renderSlot(src.slot, targetPlayer);
-        renderSlot(slot, src.player);
-
-        clearHighlights();
-        state.swapSourceSlot = null;
+        renderSlot(srcSlot, targetPlayer);
+        renderSlot(slot, srcPlayer);
         updateGameStats();
 
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-      }
+      };
     }
 
     function renderSlot(slot, p) {
       const slotEl = document.getElementById(`slot-${slot}`);
+      setupDragAndDrop(slotEl, slot);
+
       if (!p) {
-        document.getElementById(`val-${slot}`).innerText = '+ Слот';
+        document.getElementById(`val-${slot}`).innerText = '+ Выбрать';
         document.getElementById(`club-${slot}`).innerText = 'Свободно';
         document.getElementById(`club-${slot}`).className = 'text-[8px] text-slate-500 truncate';
-        slotEl.className = 'slot-card p-1 border border-slate-800 rounded-xl text-center';
+        slotEl.className = 'slot-card p-1 border border-slate-700 rounded-xl text-center cursor-pointer';
         return;
       }
 
       const theme = getClubTheme(p.club);
-      const flag = getFlag(p.country);
+      const code = getCountryCode(p.country);
       const isCaptain = state.captainSlot === slot;
       const shortName = p.name.split(' ').pop();
 
-      document.getElementById(`val-${slot}`).innerText = `${flag} ${shortName}${isCaptain ? ' (C)' : ''}`;
+      document.getElementById(`val-${slot}`).innerText = `[${code}] ${shortName}${isCaptain ? ' (C)' : ''}`;
       document.getElementById(`club-${slot}`).innerText = p.club;
       document.getElementById(`club-${slot}`).className = `text-[8px] truncate font-bold ${theme.text}`;
-      slotEl.className = `slot-card p-1 border-2 ${theme.border} bg-gradient-to-b ${theme.bg} rounded-xl text-center relative`;
+      slotEl.className = `slot-card p-1 border-2 ${theme.border} bg-gradient-to-b ${theme.bg} rounded-xl text-center cursor-grab active:cursor-grabbing`;
     }
 
     function updateGameStats() {
@@ -632,11 +556,11 @@
       const filledCount = Object.values(all).filter(Boolean).length;
       document.getElementById('draftProgressBadge').innerText = `${filledCount} / 15`;
 
-      // Лимит РФ
-      const rf = getRfCount();
+      // Лимит ЕАЭС / РФ
+      const eaes = getEaesCount();
       const rfLabel = document.getElementById('rfLimitLabel');
-      rfLabel.innerText = `${rf} / 4`;
-      rfLabel.className = `font-bold ${rf >= 4 ? 'text-emerald-400' : 'text-red-400'}`;
+      rfLabel.innerText = `${eaes} / 4`;
+      rfLabel.className = `font-bold ${eaes >= 4 ? 'text-emerald-400' : 'text-red-400'}`;
 
       // Лимит клуба
       const clubCounts = getClubCounts();
@@ -645,12 +569,10 @@
       clubLabel.innerText = `${maxInClub} / 3`;
       clubLabel.className = `font-bold ${maxInClub <= 3 ? 'text-emerald-400' : 'text-red-400'}`;
 
-      // Расчет сыгранности ТОЛЬКО по стартовому составу (11)
+      // Сыгранность стартовых 11
       const startingClubCounts = {};
       Object.values(state.starting).forEach(p => {
-        if (p && p.club) {
-          startingClubCounts[p.club] = (startingClubCounts[p.club] || 0) + 1;
-        }
+        if (p && p.club) startingClubCounts[p.club] = (startingClubCounts[p.club] || 0) + 1;
       });
 
       let triples = 0;
@@ -662,7 +584,7 @@
       document.getElementById('chemBonusValue').innerText = `+${chemPoints} очков`;
       document.getElementById('chemClustersBadge').innerText = `${triples} тройки (+${chemPoints})`;
 
-      // Состояние кнопки завершения
+      // Кнопка завершения
       const finishBtn = document.getElementById('finishDraftBtn');
       if (filledCount === 15) {
         finishBtn.className = 'w-full py-3 bg-accentGreen hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95 cursor-pointer';
@@ -673,20 +595,23 @@
       }
     }
 
+    function toggleLimitInfo() {
+      document.getElementById('limitInfoModal').classList.toggle('hidden');
+    }
+
     function toggleChemInfo() {
       document.getElementById('chemInfoModal').classList.toggle('hidden');
     }
 
-    // Завершение драфта и окно выбора капитана
     function finishDraftProcess() {
       const filledCount = Object.values(getAllSlots()).filter(Boolean).length;
       if (filledCount < 15) {
-        alert(`Необходимо укомплектовать все 15 слотов (заполнено: ${filledCount}/15)!`);
+        alert(`Необходимо заполнить все 15 слотов (сейчас: ${filledCount}/15)!`);
         return;
       }
 
-      if (getRfCount() < 4) {
-        alert('Лимит нарушен: в команде должно быть минимум 4 футболиста с гражданством РФ!');
+      if (getEaesCount() < 4) {
+        alert('Лимит нарушен: в заявке должно быть минимум 4 игрока из стран ЕАЭС (РФ, Беларусь, Казахстан, Армения, Кыргызстан)!');
         return;
       }
 
@@ -701,19 +626,18 @@
 
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
-      // Формируем список только из стартовых 11 игроков
       Object.keys(state.starting).forEach(slot => {
         const p = state.starting[slot];
         if (!p) return;
 
         const theme = getClubTheme(p.club);
-        const flag = getFlag(p.country);
+        const code = getCountryCode(p.country);
         const itemEl = document.createElement('div');
         
         itemEl.className = `p-2 bg-gradient-to-r ${theme.bg} border ${theme.border} rounded-xl flex items-center justify-between cursor-pointer active:scale-95 transition`;
         itemEl.innerHTML = `
           <div class="flex items-center gap-2">
-            <span class="text-base">${flag}</span>
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300">[${code}]</span>
             <div>
               <div class="font-bold text-xs text-white">${p.name}</div>
               <div class="text-[9px] ${theme.text}">${p.club}</div>
@@ -732,15 +656,13 @@
       state.isDraftFinished = true;
       document.getElementById('captainModal').classList.add('hidden');
 
-      // Перерисовываем слоты
       Object.keys(state.starting).forEach(s => renderSlot(s, state.starting[s]));
 
       document.getElementById('finishDraftBtn').classList.add('hidden');
-      document.getElementById('openPackBtn').classList.add('opacity-40', 'pointer-events-none');
       document.getElementById('shareBtn').classList.remove('hidden');
 
       if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-      alert(`Капитан успешно назначен: ${state.starting[slot].name}!`);
+      alert(`Капитан команды: ${state.starting[slot].name}!`);
     }
 
     function shareRoster() {

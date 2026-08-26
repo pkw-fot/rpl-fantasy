@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>РПЛ Фэнтези Пик</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgDark: '#0f172a',
+            cardDark: '#1e293b',
+            accentGreen: '#22c55e',
+            accentAmber: '#f59e0b',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-bgDark text-slate-100 min-h-screen p-4 font-sans select-none flex flex-col justify-between">
+
+  <!-- Шапка -->
+  <div>
+    <header class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+      <div>
+        <h1 class="text-lg font-black tracking-wide text-white uppercase">РПЛ: Тур 19</h1>
+        <p class="text-xs text-slate-400">Собери 3 пика на уикенд</p>
+      </div>
+      <div id="multiplierBadge" class="bg-slate-800 border border-slate-600 px-3 py-1 rounded-full text-xs font-bold text-accentGreen">
+        Множитель: x1
+      </div>
+    </header>
+
+    <!-- Экран 1: Выбор состава -->
+    <main id="draftScreen" class="space-y-4">
+      <!-- Слот 1: Нападающий -->
+      <div class="space-y-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">1. Нападающий</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="selectPlayer(1, 'Константин Тюкавин', 'Динамо')" id="btn-1-1" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
+            <div class="font-bold text-sm text-white">К. Тюкавин</div>
+            <div class="text-xs text-slate-400">Динамо М</div>
+          </button>
+          <button onclick="selectPlayer(1, 'Джон Кордоба', 'Краснодар')" id="btn-1-2" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
+            <div class="font-bold text-sm text-white">Дж. Кордоба</div>
+            <div class="text-xs text-slate-400">Краснодар</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Слот 2: Полузащитник -->
+      <div class="space-y-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">2. Полузащитник</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="selectPlayer(2, 'Эдуард Сперцян', 'Краснодар')" id="btn-2-1" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
+            <div class="font-bold text-sm text-white">Э. Сперцян</div>
+            <div class="text-xs text-slate-400">Краснодар</div>
+          </button>
+          <button onclick="selectPlayer(2, 'Лечи Садулаев', 'Ахмат')" id="btn-2-2" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
+            <div class="font-bold text-sm text-white">Л. Садулаев</div>
+            <div class="text-xs text-slate-400">Ахмат</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Слот 3: Темная лошадка -->
+      <div class="space-y-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">3. Темная лошадка</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="selectPlayer(3, 'Алексей Каштанов', 'Факел')" id="btn-3-1" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
+            <div class="font-bold text-sm text-white">А. Каштанов</div>
+            <div class="text-xs text-slate-400">Факел</div>
+          </button>
+          <button onclick="selectPlayer(3, 'Роналдо', 'Ростов')" id="btn-3-2" class="p-3 bg-cardDark border-2 border-transparent rounded-xl text-left transition active:scale-95">
+            <div class="font-bold text-sm text-white">Роналдо</div>
+            <div class="text-xs text-slate-400">Ростов</div>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Экран 2: Модалка All-in -->
+    <div id="riskScreen" class="hidden mt-2 p-4 bg-gradient-to-b from-slate-800 to-slate-900 border border-amber-500/40 rounded-2xl space-y-4 shadow-xl">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🔥</span>
+        <div>
+          <h2 class="text-base font-bold text-white">ПАНЧ ТУРА (ALL-IN)</h2>
+          <p class="text-xs text-amber-400">Шанс удвоить все очки</p>
+        </div>
+      </div>
+      
+      <div class="bg-cardDark p-3 rounded-xl border border-slate-700">
+        <p class="text-sm font-medium text-slate-200">Забьет ли <span class="text-white font-bold">Тюкавин</span> гол на этих выходных?</p>
+        <span class="inline-block mt-2 text-xs font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Кэф: 2.00</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <button onclick="handleRisk(true)" class="py-3 px-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition active:scale-95">
+          🔥 Рискнуть (x2)
+        </button>
+        <button onclick="handleRisk(false)" class="py-3 px-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs uppercase rounded-xl transition active:scale-95">
+          🛡️ Забрать x1
+        </button>
+      </div>
+    </div>
+
+    <!-- Экран 3: Финал -->
+    <div id="finalScreen" class="hidden space-y-4">
+      <div class="p-4 bg-cardDark border border-slate-700 rounded-2xl space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase">Твой состав</span>
+          <span id="finalMultiplier" class="text-xs font-black text-amber-400 bg-slate-800 px-2 py-0.5 rounded">x1</span>
+        </div>
+        <div id="summaryList" class="space-y-2 text-sm"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Нижняя панель действий -->
+  <div class="pt-4">
+    <button id="nextBtn" onclick="openRiskModal()" disabled class="w-full py-3.5 bg-slate-700 text-slate-400 font-bold text-sm uppercase tracking-wide rounded-xl transition">
+      Выбери 3 игроков
+    </button>
+    <button id="shareBtn" onclick="shareTeam()" class="hidden w-full py-3.5 bg-accentGreen text-slate-950 font-black text-sm uppercase tracking-wide rounded-xl transition active:scale-95">
+      🚀 Поделиться в Telegram
+    </button>
+  </div>
+
+  <script>
+    // Инициализация Telegram SDK
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
+    }
+
+    const state = {
+      picks: { 1: null, 2: null, 3: null },
+      multiplier: 1
+    };
+
+    function selectPlayer(slot, name, club) {
+      state.picks[slot] = { name, club };
+
+      // Подсветка кнопок
+      document.querySelectorAll(`[id^="btn-${slot}-"]`).forEach(el => {
+        el.classList.remove('border-accentGreen', 'bg-slate-800');
+      });
+      event.currentTarget.classList.add('border-accentGreen', 'bg-slate-800');
+
+      // Проверка готовности всех 3 слотов
+      if (state.picks[1] && state.picks[2] && state.picks[3]) {
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('bg-slate-700', 'text-slate-400');
+        nextBtn.classList.add('bg-accentGreen', 'text-slate-950');
+        nextBtn.innerText = 'Подтвердить состав →';
+      }
+    }
+
+    function openRiskModal() {
+      document.getElementById('draftScreen').classList.add('hidden');
+      document.getElementById('nextBtn').classList.add('hidden');
+      document.getElementById('riskScreen').classList.remove('hidden');
+    }
+
+    function handleRisk(isRisked) {
+      state.multiplier = isRisked ? 2 : 1;
+      
+      document.getElementById('riskScreen').classList.add('hidden');
+      document.getElementById('finalScreen').classList.remove('hidden');
+      document.getElementById('shareBtn').classList.remove('hidden');
+
+      // Отрисовка итога
+      document.getElementById('finalMultiplier').innerText = `x${state.multiplier}`;
+      document.getElementById('multiplierBadge').innerText = `Множитель: x${state.multiplier}`;
+      
+      const summaryList = document.getElementById('summaryList');
+      summaryList.innerHTML = Object.values(state.picks).map(p => `
+        <div class="flex justify-between items-center py-1">
+          <span class="font-bold text-white">${p.name}</span>
+          <span class="text-xs text-slate-400">${p.club}</span>
+        </div>
+      `).join('');
+    }
+
+    function shareTeam() {
+      const text = `🔥 Мой состав в РПЛ Фэнтези (Тур 19):\n1. ${state.picks[1].name}\n2. ${state.picks[2].name}\n3. ${state.picks[3].name}\n\n⚡ Множитель: x${state.multiplier}`;
+      if (tg) {
+        tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
+      } else {
+        navigator.clipboard.writeText(text);
+        alert('Состав скопирован в буфер обмена!');
+      }
+    }
+  </script>
+</body>
+</html>

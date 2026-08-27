@@ -51,14 +51,13 @@
       transform: scale(1.05);
     }
     .card-anim {
-      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
     }
     .captain-badge {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
     }
 
-    /* Эффектные стили кнопок действий */
     .btn-finish-ready {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -96,7 +95,7 @@
     }
   </style>
 </head>
-<body id="appBody" class="bg-bgDark text-slate-100 min-h-screen p-3 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-2 relative overflow-x-hidden">
+<body id="appBody" class="bg-bgDark text-slate-100 min-h-screen p-2.5 font-sans select-none flex flex-col justify-between max-w-md mx-auto space-y-2 relative overflow-x-hidden">
 
   <div id="nukeFlashLayer" class="fixed inset-0 pointer-events-none z-50 opacity-0"></div>
 
@@ -359,14 +358,14 @@
       </div>
     </div>
 
-    <!-- Модалка пака позиции -->
-    <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
-      <div class="text-center space-y-1 mb-5">
-        <div id="modalPackRole" class="text-xs font-black text-slate-400 uppercase tracking-widest">ПАК АМПЛУА</div>
-        <h2 class="text-base font-black text-white uppercase">Выберите 1 игрока</h2>
-        <p class="text-[11px] text-slate-400">Игрок займет выбранную позицию</p>
+    <!-- Модалка пака позиции (Адаптированная) -->
+    <div id="packModal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-3">
+      <div class="text-center space-y-1 mb-3">
+        <div id="modalPackRole" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">ПАК АМПЛУА</div>
+        <h2 class="text-sm font-black text-white uppercase">Выберите 1 игрока</h2>
+        <p class="text-[10px] text-slate-400">Игрок займет выбранную позицию</p>
       </div>
-      <div id="packCardsContainer" class="flex justify-center gap-2.5 w-full max-w-sm"></div>
+      <div id="packCardsContainer" class="grid grid-cols-3 gap-1.5 w-full max-w-md"></div>
     </div>
 
     <!-- Модалка выбора капитана -->
@@ -394,17 +393,14 @@
 
   <!-- Футер: Кнопки действий -->
   <div class="pt-1 space-y-2">
-    <!-- Кнопка 1: Закончить выбор (видна до завершения) -->
     <button id="finishDraftBtn" onclick="finishDraftProcess()" class="w-full py-3.5 bg-slate-800/80 border border-slate-700/60 text-slate-500 font-black text-xs uppercase tracking-wider rounded-2xl transition cursor-not-allowed">
       Закончить выбор состава (0/15)
     </button>
     
-    <!-- Кнопка 2: Поделиться составом (видна после завершения) -->
     <button id="shareBtn" onclick="shareRoster()" class="hidden w-full py-3.5 btn-share-ready text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl transition active:scale-95 flex items-center justify-center gap-1.5 border border-amber-300/40">
       <span>🚀</span> Поделиться составом
     </button>
     
-    <!-- Кнопка 3: Сбросить состав -->
     <button onclick="resetFullDraft()" class="w-full py-2 bg-transparent hover:bg-rose-950/20 border border-rose-900/40 text-rose-400/80 hover:text-rose-300 font-bold text-[10px] uppercase tracking-wider rounded-xl transition active:scale-95">
       Сбросить состав
     </button>
@@ -757,23 +753,25 @@
         const points = card.points !== undefined ? card.points : 0;
         const cardEl = document.createElement('div');
         
-        cardEl.className = `card-anim opacity-0 scale-75 flex-1 p-2.5 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-56 cursor-pointer active:scale-95`;
+        cardEl.className = `card-anim opacity-0 scale-75 w-full min-w-0 p-2 bg-gradient-to-b ${theme.bg} border-2 ${theme.border} rounded-2xl text-center shadow-2xl flex flex-col justify-between h-52 cursor-pointer active:scale-95`;
         
         cardEl.innerHTML = `
-          <div>
-            <div class="flex justify-between items-center px-1">
-              <span class="text-base">${flag}</span>
-              <span class="text-[8px] font-bold text-slate-400 truncate max-w-[50px]">${card.country}</span>
+          <div class="space-y-0.5">
+            <div class="flex justify-between items-center px-0.5">
+              <span class="text-sm">${flag}</span>
+              <span class="text-[7.5px] font-bold text-slate-400 truncate max-w-[45px]">${card.country}</span>
             </div>
-            <span class="text-[9px] font-black ${theme.text} uppercase tracking-wide block truncate mt-1">${card.club}</span>
+            <span class="text-[8.5px] font-black ${theme.text} uppercase tracking-wide block truncate">${card.club}</span>
           </div>
-          <div class="my-auto space-y-1">
-            <div class="font-black text-xs text-white leading-snug break-words">${card.name}</div>
-            <div class="inline-block text-[10px] font-black text-amber-300 bg-black/40 px-2 py-0.5 rounded-full border border-amber-500/30">${points} pts</div>
+
+          <div class="my-auto space-y-1 py-1">
+            <div class="font-black text-[11px] text-white leading-tight break-words line-clamp-2">${card.name}</div>
+            <div class="inline-block text-[9px] font-black text-amber-300 bg-black/50 px-2 py-0.5 rounded-full border border-amber-500/30">${points} pts</div>
           </div>
+
           <div class="space-y-1">
-            <div class="text-[8px] font-medium text-slate-300 truncate bg-black/30 px-1 py-0.5 rounded" title="${nextMatchText}">🗓️ ${nextMatchText}</div>
-            <span class="text-[8px] font-black px-2 py-0.5 rounded ${theme.badgeBg} ${theme.text} border ${theme.border} block">ВЫБРАТЬ</span>
+            <div class="text-[7.5px] font-medium text-slate-300 truncate bg-black/40 px-1 py-0.5 rounded" title="${nextMatchText}">🗓️ ${nextMatchText}</div>
+            <span class="text-[8px] font-black py-1 rounded ${theme.badgeBg} ${theme.text} border ${theme.border} block uppercase tracking-wider">ВЫБРАТЬ</span>
           </div>
         `;
 
@@ -783,7 +781,7 @@
         setTimeout(() => {
           cardEl.classList.remove('opacity-0', 'scale-75');
           cardEl.classList.add('opacity-100', 'scale-100');
-        }, index * 250);
+        }, index * 180);
       });
     }
 
@@ -999,7 +997,6 @@
 
       const chemPoints = triples * 3;
       document.getElementById('chemBonusValue').innerText = `+${chemPoints} очков`;
-      
       document.getElementById('chemClustersBadge').innerText = `${pluralizeTriples(triples)} (+${chemPoints})`;
 
       const finishBtn = document.getElementById('finishDraftBtn');

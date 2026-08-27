@@ -1,97 +1,35 @@
-import json
-import re
-import requests
-from bs4 import BeautifulSoup
+name: Обновление статистики РПЛ
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
-}
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
 
-def clean_name(name_str):
-    if not name_str:
-        return ""
-    # Убираем лишние символы и берем фамилию
-    parts = re.sub(r'[^a-zA-Zа-яА-ЯёЁ\s]', '', name_str).strip().split()
-    return parts[-1].lower() if parts else ""
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
 
-def update_stats_from_soccer365():
-    print("⏳ Сбор статистики бомбардиров и ассистентов с soccer365.ru...")
+    steps:
+      - name: Проверка репозитория
+        uses: actions/checkout@v4
 
-    try:
-        with open("players.json", "r", encoding="utf-8") as f:
-            database = json.load(f)
-    except Exception as e:
-        print(f"Ошибка загрузки players.json: {e}")
-        return
+      - name: Установка Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    # Словарь результативности: Фамилия -> {'goals': X, 'assists': Y}
-    stats = {}
+      - name: Установка зависимостей
+        run: |
+          pip install requests beautifulsoup4
 
-    # 1. Парсим страницу турнира РПЛ (блок бомбардиров и ассистентов)
-    url = "https://soccer365.ru/competitions/13/"
-    try:
-        res = requests.get(url, headers=HEADERS, timeout=15)
-        res.encoding = 'utf-8'
-        soup = BeautifulSoup(res.text, "html.parser")
+      - name: Запуск парсера
+        run: |
+          python update_players.py
 
-        # Ищем все строки игроков в статистических блоках
-        for tr in soup.select("table.stats_table tr, .stats_items .item, .top_players_list li"):
-            text = tr.get_text(" ", strip=True)
-            # Извлекаем фамилию и числа
-            numbers = re.findall(r'\b\d+\b', text)
-            words = re.findall(r'[А-Яа-яёЁ]{4,}', text)
-            
-            if words and numbers:
-                last_name = words[0].lower()
-                val = int(numbers[0])
-                if last_name not in stats:
-                    stats[last_name] = {"goals": 0, "assists": 0}
-                # Если число адекватное (голы/ассисты от 1 до 25)
-                if val < 30:
-                    stats[last_name]["goals"] = max(stats[last_name]["goals"], val)
-
-        print(f"Собрана статистика по {len(stats)} ключевым игрокам лиги.")
-    except Exception as e:
-        print(f"Предупреждение при парсинге: {e}")
-
-    # 2. Начисляем индивидуальные очки каждому игроку в players.json
-    total_assigned = 0
-    for role, players in database.items():
-        for player in players:
-            last_name = clean_name(player.get("name", ""))
-            club = player.get("club", "")
-
-            player_stat = stats.get(last_name, None)
-            
-            # Базовые очки за статус в команде
-            if club in ["Зенит", "Краснодар", "Спартак-Москва", "ПФК ЦСКА", "Локомотив", "Динамо-Москва"]:
-                pts = 2
-            else:
-                pts = 1 if len(last_name) % 2 == 0 else 0
-
-            # Добавляем баллы за результативность, если игрок в топе
-            if player_stat:
-                g = player_stat.get("goals", 0)
-                if role == "FWD":
-                    pts += g * 4
-                elif role == "MID":
-                    pts += g * 5
-                elif role in ["DEF", "GK"]:
-                    pts += g * 6
-
-            # Бонус клиншита вратарям/защитникам топ-клубов
-            if role in ["DEF", "GK"] and club in ["Зенит", "Краснодар", "ПФК ЦСКА"] and pts > 0:
-                pts += 4
-
-            player["points"] = pts
-            total_assigned += 1
-
-    # 3. Перезаписываем players.json
-    with open("players.json", "w", encoding="utf-8") as f:
-        json.dump(database, f, ensure_ascii=False, indent=2)
-
-    print(f"✅ Успешно! Очки рассчитаны и сохранены для всех {total_assigned} игроков.")
-
-if __name__ == "__main__":
-    update_stats_from_soccer365()
+      - name: Сохранение изменений в players.json
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add players.json
+          git commit -m "Auto: обновление очков игроков" || echo "Нет изменений"
+          git push

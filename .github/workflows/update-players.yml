@@ -2,9 +2,9 @@ name: Обновление статистики РПЛ
 
 on:
   schedule:
-    # Запуск каждый понедельник в 03:00 МСК (после завершения тура)
+    # Запуск каждый понедельник в 03:00 МСК
     - cron: '0 0 * * 1'
-  workflow_dispatch: # Позволяет запускать парсер вручную кнопкой
+  workflow_dispatch: # Включает кнопку ручного запуска в Actions
 
 jobs:
   update-stats:
@@ -19,11 +19,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Установка библиотек
+      - name: Установка зависимостей
         run: |
-          pip install -r requirements.txt
+          pip install requests beautifulsoup4
 
-      - name: Запуск парсера
+      - name: Запуск парсера статистики Soccer365
         run: |
           python update_stats.py
 
@@ -32,5 +32,5 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           git add players.json
-          git commit -m "Auto: обновление очков игроков за тур" || echo "Нет изменений"
+          git commit -m "Auto: обновление очков игроков за тур" || echo "Нет изменений для коммита"
           git push

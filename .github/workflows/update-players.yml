@@ -1,38 +1,36 @@
-name: Auto Update RPL Database
+name: Обновление статистики РПЛ
 
 on:
   schedule:
-    - cron: '0 9 * * 2'
-  workflow_dispatch:
-
-permissions:
-  contents: write
+    # Запуск каждый понедельник в 03:00 МСК (после завершения тура)
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # Позволяет запускать парсер вручную кнопкой
 
 jobs:
-  build:
+  update-stats:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Проверка репозитория
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Установка Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4
-
-      - name: Run updater script
-        run: python update_players.py
-
-      - name: Commit and push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Установка библиотек
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          touch players.json
+          pip install -r requirements.txt
+
+      - name: Запуск парсера
+        run: |
+          python update_stats.py
+
+      - name: Автоматический коммит обновленного players.json
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
           git add players.json
-          git commit -m "Auto-update RPL database via official scraper" || echo "No changes"
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:main
+          git commit -m "Auto: обновление очков игроков за тур" || echo "Нет изменений"
+          git push

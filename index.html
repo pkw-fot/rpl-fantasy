@@ -6,7 +6,7 @@
   <title>CheDic — Аргентинский словарик</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -94,7 +94,6 @@
         <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-2.5 top-2 text-xs text-slate-400 hover:text-white">✕</button>
       </div>
 
-      <!-- Автоматические теги категорий -->
       <div id="categoryTabs" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-[11px] font-bold"></div>
     </div>
   </header>
@@ -116,7 +115,6 @@
 
     <div onclick="flipFlashcard()" class="w-full h-64 cursor-pointer">
       <div id="flashcardInner" class="flashcard-inner relative w-full h-full">
-        <!-- Лицевая сторона -->
         <div class="flashcard-face absolute inset-0 glass-card rounded-3xl p-5 flex flex-col justify-between items-center text-center">
           <div class="w-full flex justify-between items-center">
             <span id="fcCategory" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-400">Общение</span>
@@ -131,7 +129,6 @@
           <div class="text-[10px] text-slate-500">Нажми на карточку, чтобы увидеть перевод</div>
         </div>
 
-        <!-- Обратная сторона -->
         <div class="flashcard-face flashcard-back absolute inset-0 glass-card rounded-3xl p-5 flex flex-col justify-between items-center text-center border-amber-400/40">
           <div class="text-[10px] font-bold text-amber-400 uppercase">Перевод и контекст</div>
           <div class="space-y-3 my-auto w-full">
@@ -175,7 +172,7 @@
             type="text"
             id="rawWordInput"
             onkeypress="if(event.key==='Enter') autoGenerateWordCard()"
-            placeholder="Например: пиво, работа, улица, bondi..."
+            placeholder="Например: пиво, работа, улица, сумка..."
             class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-400"
           />
           <button
@@ -186,10 +183,10 @@
             ✨ Заполнить
           </button>
         </div>
-        <p class="text-[9px] text-slate-400">Само подставит правильный артикль (el/la), аргентинский вариант, категорию и пример</p>
+        <p class="text-[9px] text-slate-400">Подставит артикль (el/la), аргентинский вариант, категорию и живой пример</p>
       </div>
 
-      <!-- Шаг 2: Результат генерации (можно подправить перед публикацией) -->
+      <!-- Шаг 2: Результат генерации -->
       <div class="space-y-2 text-xs">
         <div class="flex items-center justify-between px-1">
           <span class="text-[10px] text-slate-400">Авто-категория:</span>
@@ -216,7 +213,10 @@
         </div>
 
         <div>
-          <label class="text-[10px] text-slate-400 font-bold block mb-0.5">Живой пример (ES-AR)</label>
+          <div class="flex justify-between items-center mb-0.5">
+            <label class="text-[10px] text-slate-400 font-bold">Живой пример (ES-AR)</label>
+            <button type="button" onclick="regenerateOnlyContext()" class="text-[9px] text-sky-400 hover:text-sky-300 font-bold">🎲 Другой пример</button>
+          </div>
           <div class="relative flex items-center">
             <input type="text" id="fieldContextEs" placeholder="¿Tomamos una birra fría?" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-2.5 pr-7 py-1.5 text-xs text-sky-300 focus:border-sky-400 focus:outline-none" />
             <button type="button" onclick="speakSpanish(document.getElementById('fieldContextEs').value)" class="absolute right-1.5 text-xs text-sky-400 hover:text-sky-300" title="Прослушать пример">🔊</button>
@@ -271,25 +271,39 @@
 
     const SUPABASE_URL = 'https://suigaejpwuchcxzkfdxy.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_Rr1Nz7hpMqVdpYj6xq5jXg_42g37e2D';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let db = null;
+
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (initErr) {
+      console.error('Supabase init error:', initErr);
+    }
+
+    const FALLBACK_WORDS = [
+      { id: 1, es: 'Che, ¿todo bien?', phonetic: 'Че, то́до бьен?', ru: 'Слушай, всё хорошо?', context_es: 'Che, ¿todo bien? Tanto tiempo sin verte.', context_ru: 'Слушай, всё хорошо? Сто лет тебя не видел.', category: '🧉 Общение', author_name: 'Система', likes: 5 },
+      { id: 2, es: 'El bondi', phonetic: 'Эль бо́нди', ru: 'Автобус / маршрутка', context_es: 'Me tomo el bondi para ir al centro.', context_ru: 'Я сажусь на автобус, чтобы доехать до центра.', category: '🚌 Транспорт', author_name: 'Система', likes: 4 },
+      { id: 3, es: 'El laburo', phonetic: 'Эль лабу́ро', ru: 'Работа / подработка', context_es: 'Hoy tengo mucho laburo en la oficina.', context_ru: 'Сегодня у меня много работы в офисе.', category: '🔥 Сленг (Lunfardo)', author_name: 'Система', likes: 3 }
+    ];
 
     let allWords = [];
     let currentCategory = 'Все';
-    let detectedCategory = 'Общение';
+    let detectedCategory = '🧉 Общение';
     let favorites = JSON.parse(localStorage.getItem('chedic_favorites') || '[]');
     let likedIds = JSON.parse(localStorage.getItem('chedic_likes') || '[]');
     let flashcardIndex = 0;
     let currentAudio = null;
+    const audioCache = new Map();
 
-    // 1. ЖИВАЯ АРГЕНТИНСКАЯ ОЗВУЧКА (Google TTS es-AR с резервным голосом)
-    function speakSpanish(text) {
+    // 1. НЕЙРОННАЯ ОЗВУЧКА ЧЕРЕЗ FETCH + BLOB (без блокировок WebView и без робота)
+    async function speakSpanish(text) {
       if (!text) return;
-      const cleanText = text.replace(/\[.*?\]/g, '').trim();
+      const cleanText = text.replace(/\[.*?\]/g, '').replace(/[«»"]/g, '').trim();
       if (!cleanText) return;
 
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
-      // Останавливаем предыдущий звук
       if (currentAudio) {
         currentAudio.pause();
         currentAudio = null;
@@ -298,35 +312,60 @@
         window.speechSynthesis.cancel();
       }
 
-      // Потоковый естественный голос Google TTS с акцентом es-AR
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=es-AR&client=tw-ob`;
-      const audio = new Audio(ttsUrl);
-      currentAudio = audio;
+      // Проверяем кэш, чтобы повторное прослушивание срабатывало мгновенно
+      if (audioCache.has(cleanText)) {
+        const audio = new Audio(audioCache.get(cleanText));
+        currentAudio = audio;
+        audio.play().catch(() => fallbackWebSpeech(cleanText));
+        return;
+      }
 
-      audio.play().catch(() => {
-        // Если Telegram WebView заблокировал внешний аудиопоток — мягкий откат на встроенный голос
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(cleanText);
-          const voices = window.speechSynthesis.getVoices();
-          const argVoice =
-            voices.find(v => v.lang === 'es-AR') ||
-            voices.find(v => v.lang === 'es-US') ||
-            voices.find(v => v.lang.startsWith('es'));
-          if (argVoice) utterance.voice = argVoice;
-          utterance.lang = 'es-AR';
-          utterance.rate = 0.9;
-          window.speechSynthesis.speak(utterance);
+      // Нейронный голос Mia (латиноамериканский испанский, живая интонация)
+      const neuralUrl = `https://api.streamelements.com/kappa/v2/speech?voice=Mia&text=${encodeURIComponent(cleanText)}`;
+
+      try {
+        const response = await fetch(neuralUrl);
+        if (!response.ok) throw new Error('TTS network error');
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        audioCache.set(cleanText, blobUrl);
+
+        const audio = new Audio(blobUrl);
+        currentAudio = audio;
+        await audio.play();
+      } catch (err) {
+        // Второй нейронный резерв (Google TTS через прямой Audio)
+        try {
+          const gUrl = `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=es-AR&client=gtx`;
+          const gAudio = new Audio(gUrl);
+          currentAudio = gAudio;
+          await gAudio.play();
+        } catch (err2) {
+          fallbackWebSpeech(cleanText);
         }
-      });
+      }
     }
 
-    // 2. УМНЫЙ ПОДБОР ПРАВИЛЬНОГО ИСПАНСКОГО АРТИКЛЯ (el / la / los / las)
+    function fallbackWebSpeech(cleanText) {
+      if (!('speechSynthesis' in window)) return;
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      const voices = window.speechSynthesis.getVoices();
+      const bestVoice =
+        voices.find(v => v.lang === 'es-AR' && !v.name.includes('eSpeak')) ||
+        voices.find(v => (v.lang === 'es-US' || v.lang === 'es-MX') && v.name.includes('Google')) ||
+        voices.find(v => v.lang.startsWith('es'));
+      if (bestVoice) utterance.voice = bestVoice;
+      utterance.lang = 'es-AR';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // 2. ПОДБОР ПРАВИЛЬНОГО ИСПАНСКОГО АРТИКЛЯ
     function attachSpanishArticle(phrase) {
       if (!phrase) return '';
       let text = phrase.trim();
       const lower = text.toLowerCase();
 
-      // Если артикль уже есть или это вопросительная/восклицательная фраза/глагол — не трогаем
       if (/^(el|la|los|las|un|una|unos|unas)\s+/i.test(lower)) {
         return text.charAt(0).toUpperCase() + text.slice(1);
       }
@@ -335,44 +374,41 @@
       }
 
       const words = lower.split(/\s+/);
-      // Если больше 2 слов — скорее всего целая фраза или предложение
       if (words.length > 2) {
         return text.charAt(0).toUpperCase() + text.slice(1);
       }
 
       const mainWord = words[0].replace(/[.,!?;:]/g, '');
 
-      // Инфинитивы глаголов (-ar, -er, -ir) не требуют артикля
       if (/(ar|er|ir)$/.test(mainWord) && !['mar', 'bar', 'lugar', 'hogar', 'mujer', 'flor', 'amor', 'dolor', 'color', 'calor', 'sabor', 'motor', 'doctor', 'profesor'].includes(mainWord)) {
         return text.charAt(0).toUpperCase() + text.slice(1);
       }
 
-      // Словарь исключений и аргентинизмов с точным родом
       const exactGenderMap = {
-        // Мужской род (el)
         'agua': 'el', 'alma': 'el', 'área': 'el', 'hambre': 'el', 'arte': 'el',
         'día': 'el', 'mapa': 'el', 'planeta': 'el', 'problema': 'el', 'sistema': 'el',
         'tema': 'el', 'programa': 'el', 'idioma': 'el', 'clima': 'el', 'sofá': 'el',
         'tranvía': 'el', 'pijama': 'el', 'bondi': 'el', 'laburo': 'el', 'mate': 'el',
         'asado': 'el', 'colectivo': 'el', 'subte': 'el', 'chabón': 'el', 'pibe': 'el',
-        'boludo': 'el', 'quilombo': 'el', 'fajor': 'el', 'alfajor': 'el', 'café': 'el',
+        'boludo': 'el', 'quilombo': 'el', 'alfajor': 'el', 'café': 'el',
         'cortado': 'el', 'pan': 'el', 'arroz': 'el', 'pollo': 'el', 'pescado': 'el',
         'vino': 'el', 'jugo': 'el', 'vaso': 'el', 'plato': 'el', 'baño': 'el',
         'cuarto': 'el', 'departamento': 'el', 'depto': 'el', 'alquiler': 'el',
         'dinero': 'el', 'efectivo': 'el', 'cambio': 'el', 'vuelto': 'el', 'ticket': 'el',
         'turno': 'el', 'hospital': 'el', 'médico': 'el', 'remedio': 'el', 'celular': 'el',
         'cargador': 'el', 'enchufe': 'el', 'mar': 'el', 'sol': 'el', 'frío': 'el', 'calor': 'el',
-        // Женский род (la)
+        'bolso': 'el', 'supermercado': 'el', 'mercado': 'el', 'banco': 'el', 'perro': 'el', 'gato': 'el',
         'mano': 'la', 'radio': 'la', 'foto': 'la', 'moto': 'la', 'llave': 'la',
         'calle': 'la', 'noche': 'la', 'tarde': 'la', 'gente': 'la', 'mente': 'la',
         'suerte': 'la', 'muerte': 'la', 'fuente': 'la', 'parte': 'la', 'carne': 'la',
         'leche': 'la', 'sal': 'la', 'miel': 'la', 'piel': 'la', 'flor': 'la',
         'luz': 'la', 'vez': 'la', 'voz': 'la', 'paz': 'la', 'nariz': 'la',
-        'cárcel': 'la', 'señal': 'la', 'sal': 'la', 'birra': 'la', 'guita': 'la',
+        'cárcel': 'la', 'señal': 'la', 'birra': 'la', 'guita': 'la',
         'plata': 'la', 'remera': 'la', 'campera': 'la', 'zapatilla': 'la', 'vereda': 'la',
         'cuadra': 'la', 'esquina': 'la', 'parada': 'la', 'tarjeta': 'la', 'cuenta': 'la',
         'propina': 'la', 'factura': 'la', 'medialuna': 'la', 'empanada': 'la', 'milanesa': 'la',
-        'cancha': 'la', 'hincha': 'la', 'mina': 'la', 'piba': 'la', 'fiaca': 'la', 'bronca': 'la'
+        'cancha': 'la', 'hincha': 'la', 'mina': 'la', 'piba': 'la', 'fiaca': 'la', 'bronca': 'la',
+        'bolsa': 'la', 'mochila': 'la', 'valija': 'la', 'tienda': 'la', 'compra': 'la'
       };
 
       if (exactGenderMap[mainWord]) {
@@ -380,11 +416,9 @@
         return `${art.charAt(0).toUpperCase() + art.slice(1)} ${text}`;
       }
 
-      // Определение множественного числа
       const isPlural = mainWord.endsWith('s') && mainWord.length > 3;
       const base = isPlural ? mainWord.replace(/es$|s$/, '') : mainWord;
 
-      // Определение женского рода по окончаниям (-a, -ción, -sión, -dad, -tad, -tud, -umbre)
       const isFeminine =
         base.endsWith('a') ||
         base.endsWith('ción') ||
@@ -404,17 +438,17 @@
       return `${article} ${text}`;
     }
 
-    // 3. АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ КАТЕГОРИИ ПО СМЫСЛУ
+    // 3. АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ КАТЕГОРИИ
     function detectAutoCategory(es, ru) {
       const combined = `${es} ${ru}`.toLowerCase();
 
-      if (/(comida|café|cortado|birra|cerveza|agua|carne|asado|medialuna|empanada|cuenta|propina|comer|tomar|еда|кофе|пиво|вода|мясо|счёт|кафе|ресторан|завтрак|обед|ужин|вкусн|хлеб|вино)/.test(combined)) {
+      if (/(comida|café|cortado|birra|cerveza|agua|carne|asado|medialuna|empanada|cuenta|propina|comer|tomar|helado|frutilla|palta|еда|кофе|пиво|вода|мясо|счёт|кафе|ресторан|завтрак|обед|ужин|вкусн|хлеб|вино|морожен)/.test(combined)) {
         return '🥩 Еда и кафе';
       }
-      if (/(bondi|colectivo|subte|taxi|remís|calle|cuadra|esquina|parada|viaje|tren|avión|автобус|метро|такси|улица|квартал|остановка|поехать|дорога|транспорт|билет)/.test(combined)) {
+      if (/(bondi|colectivo|subte|taxi|remís|calle|cuadra|esquina|parada|viaje|tren|avión|vereda|автобус|метро|такси|улица|квартал|остановка|поехать|дорога|транспорт|билет|тротуар)/.test(combined)) {
         return '🚌 Транспорт';
       }
-      if (/(plata|guita|cambio|efectivo|tarjeta|transferencia|alquiler|depto|departamento|luz|agua|gas|llave|sale|cuesta|precio|деньги|налич|карта|перевод|аренда|квартир|ключ|стоит|цена|магазин|банк)/.test(combined)) {
+      if (/(plata|guita|cambio|efectivo|tarjeta|transferencia|alquiler|depto|departamento|luz|gas|llave|sale|cuesta|precio|bolsa|tienda|supermercado|деньги|налич|карта|перевод|аренда|квартир|ключ|стоит|цена|магазин|банк|сумка|пакет)/.test(combined)) {
         return '🏠 Деньги и быт';
       }
       if (/(laburo|quilombo|fiaca|piola|chabón|mina|pibe|boludo|che|dale|bárbaro|copado|сленг|круто|работа|бардак|лень|чувак|девушка|парень)/.test(combined)) {
@@ -426,12 +460,171 @@
       return '🧉 Общение';
     }
 
-    // 4. РИОПЛАТСКИЙ ФОНЕТИЧЕСКИЙ ТРАНСКРИПТОР (ES-AR -> RU)
+    // 4. ЖИВОЙ РАЗНООБРАЗНЫЙ ГЕНЕРАТОР КОНТЕКСТА
+    function generateDynamicContext(esWithArticle, ruWord, category) {
+      const lowerEs = esWithArticle.toLowerCase();
+      const lowerRu = ruWord.toLowerCase().replace(/[.!?]+$/g, '');
+
+      // Определяем род и число по артиклю для точного согласования в предложении
+      let artType = 'none'; // 'el', 'la', 'los', 'las', 'none'
+      let bareNounEs = esWithArticle;
+
+      if (/^el\s+/i.test(esWithArticle)) {
+        artType = 'el';
+        bareNounEs = esWithArticle.replace(/^el\s+/i, '');
+      } else if (/^la\s+/i.test(esWithArticle)) {
+        artType = 'la';
+        bareNounEs = esWithArticle.replace(/^la\s+/i, '');
+      } else if (/^los\s+/i.test(esWithArticle)) {
+        artType = 'los';
+        bareNounEs = esWithArticle.replace(/^los\s+/i, '');
+      } else if (/^las\s+/i.test(esWithArticle)) {
+        artType = 'las';
+        bareNounEs = esWithArticle.replace(/^las\s+/i, '');
+      }
+
+      const unArt = artType === 'el' ? 'un' : artType === 'la' ? 'una' : artType === 'los' ? 'unos' : artType === 'las' ? 'unas' : '';
+      const esteArt = artType === 'el' ? 'este' : artType === 'la' ? 'esta' : artType === 'los' ? 'estos' : artType === 'las' ? 'estas' : '';
+      const defArt = artType !== 'none' ? artType : '';
+
+      // Если это глагол (инфинитив)
+      if (artType === 'none' && /(ar|er|ir)$/.test(lowerEs.split(' ')[0])) {
+        const verbTemplates = [
+          {
+            es: `Hoy tengo ganas de ${lowerEs} un rato.`,
+            ru: `Сегодня мне хочется немного ${lowerRu}.`
+          },
+          {
+            es: `¿Podés ${lowerEs} ahora o estás ocupado?`,
+            ru: `Можешь ${lowerRu} сейчас или ты занят?`
+          },
+          {
+            es: `Mañana vamos a ${lowerEs} juntos por el centro.`,
+            ru: `Завтра пойдём ${lowerRu} вместе по центру.`
+          },
+          {
+            es: `Siempre me gusta ${lowerEs} cuando estoy en Buenos Aires.`,
+            ru: `Мне всегда нравится ${lowerRu}, когда я в Буэнос-Айресе.`
+          }
+        ];
+        return verbTemplates[Math.floor(Math.random() * verbTemplates.length)];
+      }
+
+      // Если это готовая фраза или вопрос без артикля
+      if (artType === 'none') {
+        const phraseTemplates = [
+          {
+            es: `Cuando entrás a un local en Córdoba, siempre decís: «${esWithArticle}».`,
+            ru: `Когда заходишь в магазин в Кордове, всегда говоришь: «${ruWord}».`
+          },
+          {
+            es: `En una charla con amigos argentinos vas a escuchar mucho: «${esWithArticle}».`,
+            ru: `В разговоре с аргентинскими друзьями ты часто услышишь: «${ruWord}».`
+          },
+          {
+            es: `Si querés sonar como un porteño, usá la frase: «${esWithArticle}».`,
+            ru: `Если хочешь звучать как местный, используй фразу: «${ruWord}».`
+          }
+        ];
+        return phraseTemplates[Math.floor(Math.random() * phraseTemplates.length)];
+      }
+
+      // Тематические живые шаблоны для существительных с артиклем
+      const byCategory = {
+        '🥩 Еда и кафе': [
+          {
+            es: `Disculpá, ¿me traés ${unArt} ${bareNounEs}, por favor?`,
+            ru: `Извини, принесёшь мне ${lowerRu}, пожалуйста?`
+          },
+          {
+            es: `En este bodegón ${defArt} ${bareNounEs} sale riquísimo.`,
+            ru: `В этом местном ресторанчике ${lowerRu} получается обалденным.`
+          },
+          {
+            es: `¿Cuánto sale ${unArt} ${bareNounEs} para llevar?`,
+            ru: `Сколько стоит ${lowerRu} с собой?`
+          },
+          {
+            es: `Pedimos ${unArt} ${bareNounEs} más para compartir en la mesa.`,
+            ru: `Мы заказали ещё ${lowerRu} на стол на всех.`
+          }
+        ],
+        '🚌 Транспорт': [
+          {
+            es: `¿Sabés por dónde queda ${defArt} ${bareNounEs} más cerca?`,
+            ru: `Не подскажешь, где здесь ближайший ${lowerRu}?`
+          },
+          {
+            es: `Nos encontramos justo al lado de ${defArt} ${bareNounEs}.`,
+            ru: `Встречаемся прямо рядом с этим местом (${lowerRu}).`
+          },
+          {
+            es: `Hoy ${defArt} ${bareNounEs} viene con un poco de demora.`,
+            ru: `Сегодня ${lowerRu} идёт с небольшой задержкой.`
+          }
+        ],
+        '🏠 Деньги и быт': [
+          {
+            es: `¿Tenés a mano ${defArt} ${bareNounEs} antes de salir?`,
+            ru: `У тебя под рукой ${lowerRu} перед выходом?`
+          },
+          {
+            es: `Necesito conseguir ${unArt} ${bareNounEs} hoy mismo en el barrio.`,
+            ru: `Мне нужно раздобыть ${lowerRu} прямо сегодня у нас на районе.`
+          },
+          {
+            es: `Guardá bien ${defArt} ${bareNounEs} en la mochila.`,
+            ru: `Убери подальше ${lowerRu} в рюкзак.`
+          }
+        ]
+      };
+
+      const generalNounTemplates = [
+        {
+          es: `Me compré ${unArt} ${bareNounEs} re piola cerca de casa.`,
+          ru: `Я купил себе очень классный ${lowerRu} недалеко от дома.`
+        },
+        {
+          es: `¿Dónde dejaste ${defArt} ${bareNounEs}? No lo encuentro.`,
+          ru: `Где ты оставил ${lowerRu}? Никак не могу найти.`
+        },
+        {
+          es: `Necesito ${unArt} ${bareNounEs} nuevo para esta semana.`,
+          ru: `Мне нужен новый ${lowerRu} на эту неделю.`
+        },
+        {
+          es: `Fijate si ${esteArt} ${bareNounEs} te sirve para hoy.`,
+          ru: `Посмотри, подойдёт ли тебе этот ${lowerRu} на сегодня.`
+        },
+        {
+          es: `En Argentina todo el mundo habla de ${defArt} ${bareNounEs}.`,
+          ru: `В Аргентине все вокруг говорят про ${lowerRu}.`
+        }
+      ];
+
+      const pool = byCategory[category]
+        ? [...byCategory[category], ...generalNounTemplates]
+        : generalNounTemplates;
+
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function regenerateOnlyContext() {
+      const es = document.getElementById('fieldEs').value.trim();
+      const ru = document.getElementById('fieldRu').value.trim();
+      if (!es || !ru) return;
+      const cat = detectAutoCategory(es, ru);
+      const ctx = generateDynamicContext(es, ru, cat);
+      document.getElementById('fieldContextEs').value = ctx.es;
+      document.getElementById('fieldContextRu').value = ctx.ru;
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    }
+
+    // 5. РИОПЛАТСКИЙ ФОНЕТИЧЕСКИЙ ТРАНСКРИПТОР
     function spanishToRioplatenseCyrillic(esText) {
       if (!esText) return '';
       let s = esText.toLowerCase().trim();
       s = s.replace(/^[¿¡]+|[?!.,]+$/g, '');
-      // Фирменный аргентинский звук: ll и y -> ш
       s = s.replace(/ll/g, 'ш');
       s = s.replace(/\by(?=[aeiouáéíóú])/g, 'ш');
       s = s.replace(/([aeiouáéíóú])y([aeiouáéíóú])/g, '$1ш$2');
@@ -461,7 +654,7 @@
       return res.charAt(0).toUpperCase() + res.slice(1);
     }
 
-    // 5. СЛОВАРЬ АРГЕНТИНСКИХ СООТВЕТСТВИЙ И ЖИВОГО КОНТЕКСТА
+    // 6. ПРЯМОЙ СЛОВАРЬ АРГЕНТИНИЗМОВ
     const ARGENTINE_LEXICON = {
       'автобус': { es: 'El bondi', ru: 'Автобус / маршрутка', ctxEs: 'Me tomo el bondi para ir al centro.', ctxRu: 'Я сажусь на автобус, чтобы поехать в центр.' },
       'маршрутка': { es: 'El bondi', ru: 'Маршрутка / автобус', ctxEs: '¿Qué bondi me deja en Palermo?', ctxRu: 'Какой автобус довезёт меня до Палермо?' },
@@ -484,14 +677,12 @@
       'кофе': { es: 'El cortado / El café', ru: 'Кофе (с капелькой молока)', ctxEs: 'Un cortado en jarrito, por favor.', ctxRu: 'Кортадо в большой чашке, пожалуйста.' },
       'клубника': { es: 'La frutilla', ru: 'Клубника', ctxEs: 'Me encanta el helado de frutilla.', ctxRu: 'Я обожаю клубничное мороженое.' },
       'авокадо': { es: 'La palta', ru: 'Авокадо', ctxEs: 'Tostadas con palta y huevo.', ctxRu: 'Тосты с авокадо и яйцом.' },
-      'банан': { es: 'La banana', ru: 'Банан', ctxEs: 'Compré un kilo de bananas.', ctxRu: 'Я купил килограмм бананов.' },
       'парень': { es: 'El chabón / El pibe', ru: 'Парень / чувак', ctxEs: 'Es un pibe re buena onda.', ctxRu: 'Он очень классный парень.' },
       'девушка': { es: 'La mina / La piba', ru: 'Девушка', ctxEs: 'La piba que atiende es muy amable.', ctxRu: 'Девушка на кассе очень приветливая.' },
-      'холод': { es: 'El frío / El fresco', ru: 'Холод / прохлада', ctxEs: 'Llevá campera porque hace frío.', ctxRu: 'Возьми куртку, потому что холодно.' },
       'куртка': { es: 'La campera', ru: 'Куртка', ctxEs: 'Me puse la campera de cuero.', ctxRu: 'Я надел кожаную куртку.' }
     };
 
-    // 6. АВТОЗАПОЛНЕНИЕ КАРТОЧКИ
+    // 7. АВТОЗАПОЛНЕНИЕ КАРТОЧКИ
     async function autoGenerateWordCard() {
       const raw = document.getElementById('rawWordInput').value.trim();
       if (!raw) {
@@ -505,7 +696,6 @@
 
       const lowerRaw = raw.toLowerCase();
 
-      // 1) Сначала проверяем прямой аргентинский словарь
       if (ARGENTINE_LEXICON[lowerRaw]) {
         const hit = ARGENTINE_LEXICON[lowerRaw];
         const cat = detectAutoCategory(hit.es, hit.ru);
@@ -515,7 +705,6 @@
         return;
       }
 
-      // 2) Если в базе нет прямого совпадения — переводим через API и адаптируем под Аргентину
       const isCyrillic = /[а-яА-ЯёЁ]/.test(raw);
       const langPair = isCyrillic ? 'ru|es' : 'es|ru';
 
@@ -527,7 +716,6 @@
         let esBase = isCyrillic ? translated : raw;
         let ruBase = isCyrillic ? raw : translated;
 
-        // Замена стандартных испанских слов на аргентинские аналоги
         const argSwaps = [
           [/\bautob[uú]s\b/gi, 'bondi'],
           [/\btrabajo\b/gi, 'laburo'],
@@ -547,17 +735,12 @@
           esBase = esBase.replace(regex, replacement);
         }
 
-        // Автоматически подставляем правильный артикль (El / La / Los / Las)
         const esWithArticle = attachSpanishArticle(esBase);
         const ruFormatted = ruBase.charAt(0).toUpperCase() + ruBase.slice(1);
         const cat = detectAutoCategory(esWithArticle, ruFormatted);
+        const dynamicCtx = generateDynamicContext(esWithArticle, ruFormatted, cat);
 
-        // Формируем естественный пример в контексте
-        const cleanForContext = esWithArticle.charAt(0).toLowerCase() + esWithArticle.slice(1);
-        const ctxEs = `Che, mirá: acá usamos "${cleanForContext}".`;
-        const ctxRu = `Слушай, смотри: здесь мы используем «${ruBase.toLowerCase()}».`;
-
-        applyGeneratedFields(esWithArticle, ruFormatted, ctxEs, ctxRu, cat);
+        applyGeneratedFields(esWithArticle, ruFormatted, dynamicCtx.es, dynamicCtx.ru, cat);
       } catch (e) {
         alert('Не удалось перевести автоматически, заполните поля вручную.');
       } finally {
@@ -576,37 +759,53 @@
       document.getElementById('autoCategoryBadge').innerText = cat;
     }
 
-    // 7. ЗАГРУЗКА СЛОВ ИЗ SUPABASE
     async function loadWords() {
       const loader = document.getElementById('loadingIndicator');
+      const container = document.getElementById('wordsContainer');
       loader.classList.remove('hidden');
 
-      const { data, error } = await db
-        .from('words')
-        .select('*')
-        .order('likes', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      loader.classList.add('hidden');
-
-      if (error) {
-        console.error('Ошибка Supabase:', error);
-        document.getElementById('wordsContainer').innerHTML = `
-          <div class="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-center text-xs text-rose-300">
-            Ошибка подключения к базе: ${error.message}
-          </div>
-        `;
+      if (!db) {
+        loader.classList.add('hidden');
+        allWords = FALLBACK_WORDS;
+        document.getElementById('totalWordsBadge').innerText = `${allWords.length} слов`;
+        renderDynamicCategoryTabs();
+        renderWordsList();
+        updateFlashcard();
         return;
       }
 
-      allWords = data || [];
-      document.getElementById('totalWordsBadge').innerText = `${allWords.length} слов`;
-      renderDynamicCategoryTabs();
-      renderWordsList();
-      updateFlashcard();
+      try {
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Таймаут подключения к Supabase')), 8000)
+        );
+
+        const fetchPromise = db
+          .from('words')
+          .select('*')
+          .order('likes', { ascending: false })
+          .order('created_at', { ascending: false });
+
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
+        loader.classList.add('hidden');
+
+        if (error) throw new Error(error.message);
+
+        allWords = (data && data.length > 0) ? data : FALLBACK_WORDS;
+        document.getElementById('totalWordsBadge').innerText = `${allWords.length} слов`;
+        renderDynamicCategoryTabs();
+        renderWordsList();
+        updateFlashcard();
+      } catch (err) {
+        loader.classList.add('hidden');
+        allWords = FALLBACK_WORDS;
+        document.getElementById('totalWordsBadge').innerText = `${allWords.length} слов`;
+        renderDynamicCategoryTabs();
+        renderWordsList();
+        updateFlashcard();
+      }
     }
 
-    // 8. ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ ТАБОВ КАТЕГОРИЙ ИЗ БАЗЫ
     function renderDynamicCategoryTabs() {
       const container = document.getElementById('categoryTabs');
       const uniqueCats = [...new Set(allWords.map(w => w.category).filter(Boolean))];
@@ -622,7 +821,6 @@
       }).join('');
     }
 
-    // 9. СОХРАНЕНИЕ СЛОВА В SUPABASE
     async function saveWordToSupabase() {
       let es = document.getElementById('fieldEs').value.trim();
       const phonetic = document.getElementById('fieldPhonetic').value.trim();
@@ -635,7 +833,11 @@
         return;
       }
 
-      // Гарантируем артикль, даже если пользователь ввёл слово вручную без нажатия "Заполнить"
+      if (!db) {
+        alert('Нет подключения к Supabase. Проверьте интернет и обновите страницу.');
+        return;
+      }
+
       es = attachSpanishArticle(es);
       const finalCategory = detectAutoCategory(es, ru);
 
@@ -649,34 +851,38 @@
       saveBtn.innerText = '⏳ Сохраняем...';
       saveBtn.disabled = true;
 
-      const { error } = await db.from('words').insert([{
-        es,
-        phonetic: phonetic || spanishToRioplatenseCyrillic(es),
-        ru,
-        context_es,
-        context_ru,
-        category: finalCategory,
-        author_name: currentUser.name,
-        author_id: currentUser.id,
-        likes: 1
-      }]);
+      try {
+        const { error } = await db.from('words').insert([{
+          es,
+          phonetic: phonetic || spanishToRioplatenseCyrillic(es),
+          ru,
+          context_es,
+          context_ru,
+          category: finalCategory,
+          author_name: currentUser.name,
+          author_id: currentUser.id,
+          likes: 1
+        }]);
 
-      saveBtn.innerText = '🚀 Опубликовать в общий словарь';
-      saveBtn.disabled = false;
+        if (error) {
+          alert('Ошибка при сохранении: ' + error.message);
+          return;
+        }
 
-      if (error) {
-        alert('Ошибка при сохранении: ' + error.message);
-        return;
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        closeAddModal();
+        clearAddModalFields();
+        await loadWords();
+      } catch (e) {
+        alert('Сетевая ошибка при сохранении: ' + e.message);
+      } finally {
+        saveBtn.innerText = '🚀 Опубликовать в общий словарь';
+        saveBtn.disabled = false;
       }
-
-      if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-      closeAddModal();
-      clearAddModalFields();
-      await loadWords();
     }
 
     async function toggleLike(wordId, currentLikes) {
-      if (likedIds.includes(wordId)) return;
+      if (likedIds.includes(wordId) || !db) return;
       likedIds.push(wordId);
       localStorage.setItem('chedic_likes', JSON.stringify(likedIds));
 
@@ -747,7 +953,7 @@
               </div>
 
               <div class="flex items-center gap-1 shrink-0">
-                <button onclick="speakSpanish('${safeEs}')" class="w-8 h-8 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-400 border border-sky-500/30 flex items-center justify-center text-sm active:scale-90 transition" title="Озвучка ES-AR">
+                <button onclick="speakSpanish('${safeEs}')" class="w-8 h-8 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-400 border border-sky-500/30 flex items-center justify-center text-sm active:scale-90 transition" title="Озвучка">
                   🔊
                 </button>
                 <button onclick="toggleFavorite(${w.id})" class="w-8 h-8 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center justify-center text-xs active:scale-90 transition">
